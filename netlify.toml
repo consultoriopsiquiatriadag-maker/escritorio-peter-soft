@@ -16,7 +16,8 @@
 
 [build]
   publish = "."
-  # Sin build command → deploy instantáneo y siempre exitoso
+  command = ""
+  # command vacío → override cualquier comando en la UI de Netlify → deploy instantáneo
 
 # Cache-Control para links.json (fallback estático en el repo)
 [[headers]]
