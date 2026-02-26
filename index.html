@@ -39,6 +39,9 @@
       --bg-image: url("bg-petersoft.jpg");
       --bg-overlay: rgba(6,16,36,.55);   /* oscuro: superposición azul noche */
       --bg-blur: 2px;
+
+      /* Category icon accent colors (default: blue) — overridden per .section[data-cat] */
+      --ico-r: 77; --ico-g: 163; --ico-b: 255;
     }
 
     /* Tema forzado */
@@ -158,8 +161,8 @@
       transform: scale(1.07) rotate(-2deg);
       box-shadow: 0 10px 32px rgba(0,0,0,.5), 0 0 0 2px rgba(77,163,255,.35), 0 0 30px rgba(77,163,255,.25);
     }
-    .brand h1{font-size:15px;margin:0;line-height:1.15}
-    .brand p{font-size:12px;margin:2px 0 0;color:var(--muted)}
+    .brand h1{font-size:17px;margin:0;line-height:1.15;font-weight:700}
+    .brand p{font-size:13px;margin:2px 0 0;color:var(--muted)}
     .controls{display:flex; gap:10px; align-items:center; flex:1; min-width:260px; flex-wrap:wrap}
 
     .search{
@@ -176,7 +179,7 @@
       border:0; outline:0;
       background:transparent;
       color:var(--text);
-      font-size:14px;
+      font-size:15px;
     }
 
     .btn{
@@ -184,8 +187,8 @@
       background: rgba(255,255,255,.06);
       color:var(--text);
       border-radius: 14px;
-      padding: 10px 12px;
-      font-size:13px;
+      padding: 10px 14px;
+      font-size:14px;
       cursor:pointer;
       transition: transform .06s ease, background .15s ease, border-color .15s ease, filter .15s ease;
       user-select:none;
@@ -221,7 +224,7 @@
       color: var(--text);
     }
 
-    .grid{margin-top: 14px;display:grid;grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));gap: 14px;}
+    .grid{margin-top: 16px;display:grid;grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));gap: 16px;}
 
     .section{
       background: var(--glass2);
@@ -246,8 +249,8 @@
       display:flex; align-items:center; justify-content:space-between;
       padding: 13px 14px;
       background: linear-gradient(135deg,
-        rgba(77,163,255,.18) 0%,
-        rgba(77,163,255,.07) 40%,
+        rgba(var(--ico-r),var(--ico-g),var(--ico-b),.18) 0%,
+        rgba(var(--ico-r),var(--ico-g),var(--ico-b),.07) 40%,
         rgba(255,255,255,.04) 100%);
       border-bottom:1px solid var(--border2);
       position: relative;
@@ -276,9 +279,9 @@
       height:2px;
       background: linear-gradient(90deg,
         transparent,
-        rgba(77,163,255,.7) 30%,
-        rgba(147,210,255,.9) 50%,
-        rgba(77,163,255,.7) 70%,
+        rgba(var(--ico-r),var(--ico-g),var(--ico-b),.7) 30%,
+        rgba(var(--ico-r),var(--ico-g),var(--ico-b),.9) 50%,
+        rgba(var(--ico-r),var(--ico-g),var(--ico-b),.7) 70%,
         transparent);
       opacity:0;
       transition: opacity .3s ease;
@@ -288,8 +291,8 @@
     }
     .section-title{
       display:flex; gap:10px; align-items:center;
-      font-weight:700; font-size: 13px;
-      letter-spacing: .3px;
+      font-weight:700; font-size: 14px;
+      letter-spacing: .4px;
       text-shadow: 0 1px 3px rgba(0,0,0,.4);
       position: relative;
     }
@@ -304,7 +307,7 @@
     }
     /* Texto del título con gradiente animado */
     .section-title .sec-text{
-      background: linear-gradient(90deg, var(--text) 0%, rgba(147,210,255,.95) 100%);
+      background: linear-gradient(90deg, var(--text) 0%, rgba(var(--ico-r),var(--ico-g),var(--ico-b),.95) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -334,17 +337,17 @@
       background: var(--glass);
       border:1px solid var(--border2);
       border-radius: var(--radius2);
-      padding: 12px 12px;
+      padding: 14px 14px;
       display:flex; gap:12px; align-items:center;
-      min-height: 60px;
+      min-height: 64px;
       transition: transform .12s ease, border-color .15s ease, box-shadow .15s ease;
       position:relative;
       box-shadow: 0 2px 8px rgba(0,0,0,.15), 0 1px 0 rgba(255,255,255,.06) inset;
     }
     a.card:hover{
       transform: translateY(-2px) scale(1.01);
-      border-color: rgba(77,163,255,.35);
-      box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 12px rgba(77,163,255,.12), 0 1px 0 rgba(255,255,255,.08) inset;
+      border-color: rgba(var(--ico-r),var(--ico-g),var(--ico-b),.38);
+      box-shadow: 0 8px 24px rgba(0,0,0,.3), 0 0 14px rgba(var(--ico-r),var(--ico-g),var(--ico-b),.14), 0 1px 0 rgba(255,255,255,.08) inset;
     }
     a.card:active{
       transform: translateY(0px) scale(.99);
@@ -354,9 +357,9 @@
     .ico{
       width:40px;height:40px;border-radius: 12px;
       display:grid;place-items:center;
-      background: linear-gradient(135deg, rgba(77,163,255,.18), rgba(77,163,255,.08));
-      border: 1px solid rgba(77,163,255,.30);
-      box-shadow: 0 3px 10px rgba(77,163,255,.15), 0 1px 0 rgba(255,255,255,.1) inset;
+      background: linear-gradient(135deg, rgba(var(--ico-r),var(--ico-g),var(--ico-b),.20), rgba(var(--ico-r),var(--ico-g),var(--ico-b),.08));
+      border: 1px solid rgba(var(--ico-r),var(--ico-g),var(--ico-b),.32);
+      box-shadow: 0 3px 10px rgba(var(--ico-r),var(--ico-g),var(--ico-b),.16), 0 1px 0 rgba(255,255,255,.1) inset;
       font-weight:800;
       flex: 0 0 auto;
       user-select:none;
@@ -367,7 +370,7 @@
     }
     a.card:hover .ico{
       transform: scale(1.12) rotate(-4deg);
-      box-shadow: 0 6px 18px rgba(77,163,255,.3), 0 1px 0 rgba(255,255,255,.15) inset;
+      box-shadow: 0 6px 18px rgba(var(--ico-r),var(--ico-g),var(--ico-b),.32), 0 1px 0 rgba(255,255,255,.15) inset;
     }
     .fav{
       width: 28px;
@@ -401,7 +404,7 @@
     .section:nth-child(n+7){ animation-delay:.27s }
 
     .card-meta{min-width:0}
-    .card-title{font-size: 14px;font-weight: 700;margin:0;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .card-title{font-size: 15px;font-weight: 700;margin:0;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
     .card-url{margin:4px 0 0;font-size: 12px;color: var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
     .chips{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; justify-content:flex-end;}
@@ -617,25 +620,25 @@
 
     /* === SECCIONES DE LINKS — grid de botones === */
     .section:not(.full-width) .cards{
-      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
-      gap: 7px;
-      padding: 10px 12px 12px;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 8px;
+      padding: 12px 12px 14px;
     }
     .section:not(.full-width) a.card{
       flex-direction: row;
-      min-height: 52px;
-      padding: 9px 11px;
+      min-height: 56px;
+      padding: 10px 12px;
       border-radius: 12px;
       gap: 9px;
       align-items: center;
     }
     .section:not(.full-width) .ico{
-      width: 36px; height: 36px;
-      border-radius: 10px;
+      width: 38px; height: 38px;
+      border-radius: 11px;
     }
     .section:not(.full-width) .card-meta{ min-width:0; flex:1; }
     .section:not(.full-width) .card-title{
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 700;
       white-space: normal;
       overflow: hidden;
@@ -813,6 +816,20 @@
       max-width: calc(100% - 20px);
     }
     .toast.show{display:block}
+
+    /* ── Category accent colors ─────────────────────────────────────── */
+    .section[data-cat="ia"]          { --ico-r: 139; --ico-g:  92; --ico-b: 246; }
+    .section[data-cat="salud"]       { --ico-r:  16; --ico-g: 185; --ico-b: 129; }
+    .section[data-cat="tools"]       { --ico-r:   6; --ico-g: 182; --ico-b: 212; }
+    .section[data-cat="trabajo"]     { --ico-r:  99; --ico-g: 102; --ico-b: 241; }
+    .section[data-cat="finanzas"]    { --ico-r: 245; --ico-g: 158; --ico-b:  11; }
+    .section[data-cat="compras"]     { --ico-r: 244; --ico-g:  63; --ico-b:  94; }
+    .section[data-cat="nube"]        { --ico-r:  14; --ico-g: 165; --ico-b: 233; }
+    .section[data-cat="id"]          { --ico-r: 234; --ico-g: 179; --ico-b:   8; }
+    .section[data-cat="misc"]        { --ico-r: 100; --ico-g: 116; --ico-b: 139; }
+    .section[data-cat="consultorio"] { --ico-r: 249; --ico-g: 115; --ico-b:  22; }
+    .section[data-cat="militar"]     { --ico-r: 120; --ico-g: 113; --ico-b: 108; }
+    .section[data-cat="widgets"]     { --ico-r:  77; --ico-g: 163; --ico-b: 255; }
   </style>
 </head>
 
@@ -943,6 +960,9 @@
   </dialog>
 
   <div id="toast" class="toast"></div>
+
+  <!-- Links loader: CSV → cache → links.json fallback (sin build step) -->
+  <script src="links-loader.js"></script>
 
   <script>
     // Edición siempre habilitada (sin PIN)
@@ -1227,6 +1247,7 @@
 
         const section = document.createElement("section");
         section.className = "section";
+        section.dataset.cat = cat.id;         // activa CSS vars de color por categoría
         if(cat.id === "widgets") section.classList.add("full-width");
 
         const header = document.createElement("div");
@@ -2250,41 +2271,37 @@
       state.links = [...widgets, ...incoming];
     }
 
-    /** Actualiza el chip/badge de fuente en la toolbar. */
+    /** Actualiza el badge de fuente en la toolbar. */
     function updateSourceIndicator() {
       const el = document.getElementById("sourceIndicator");
       if (!el) return;
-      if (linksSource === "sheet") {
-        el.textContent = "☁️ Fuente: Google Sheets";
-        el.style.color = "rgba(34,197,94,.95)";
-        el.style.borderColor = "rgba(34,197,94,.35)";
-        el.style.background = "rgba(34,197,94,.08)";
-      } else {
-        el.textContent = "💾 Fuente: Local";
-        el.style.color = "var(--muted)";
-        el.style.borderColor = "";
-        el.style.background = "";
-      }
+      const labels = {
+        "sheet":       { text:"☁️ Google Sheets",   color:"rgba(34,197,94,.95)",  border:"rgba(34,197,94,.35)",  bg:"rgba(34,197,94,.08)"  },
+        "json":        { text:"📄 links.json",       color:"rgba(77,163,255,.95)", border:"rgba(77,163,255,.35)", bg:"rgba(77,163,255,.08)" },
+        "cache":       { text:"💾 Cache (reciente)", color:"rgba(245,158,11,.95)", border:"rgba(245,158,11,.35)", bg:"rgba(245,158,11,.08)" },
+        "cache-stale": { text:"⚠️ Cache (expirada)", color:"rgba(245,158,11,.85)", border:"rgba(245,158,11,.28)", bg:"rgba(245,158,11,.06)" },
+        "local":       { text:"💾 Fuente: Local",    color:"var(--muted)",         border:"",                     bg:""                     },
+      };
+      const cfg = labels[linksSource] || labels["local"];
+      el.textContent      = cfg.text;
+      el.style.color      = cfg.color;
+      el.style.borderColor = cfg.border;
+      el.style.background = cfg.bg;
     }
 
     /**
-     * Intenta cargar /links.json generado en el build de Netlify.
-     * Si tiene éxito → usa el Sheet como fuente (Opción A).
-     * Si falla (404, red, JSON inválido) → usa localStorage como fallback.
+     * Carga links usando LinksLoader (CSV → cache → links.json → local).
+     * Si obtiene datos externos → aplica al state y re-renderiza.
+     * Si todo falla → queda con localStorage (state ya cargado arriba).
      */
     async function loadLinksFromJSON() {
-      try {
-        const res = await fetch("/links.json?ts=" + Date.now());
-        if (!res.ok) throw new Error("links.json no disponible (HTTP " + res.status + ")");
-        const data = await res.json();
-        if (!Array.isArray(data.links)) throw new Error("links.json inválido: falta campo links[]");
-        applySheetLinks(data);
-        linksSource = "sheet";
-        console.log("☁️ links.json cargado:", data.links.length, "links | fuente:", data.source);
-      } catch (e) {
+      const result = await window.LinksLoader.loadLinksData();
+      if (result.data && Array.isArray(result.data.links) && result.data.links.length > 0) {
+        applySheetLinks(result.data);
+        linksSource = result.source; // "sheet" | "json" | "cache" | "cache-stale"
+      } else {
         linksSource = "local";
         sheetLinksData = null;
-        console.log("💾 Usando fuente local (localStorage). Razón:", e.message);
       }
       updateSourceIndicator();
     }
