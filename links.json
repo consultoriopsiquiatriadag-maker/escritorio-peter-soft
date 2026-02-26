@@ -1,0 +1,182 @@
+{
+  "updatedAt": "2026-02-25T00:00:00.000Z",
+  "source": "Google Sheets CSV",
+  "links": [
+    {
+      "category": "ia",
+      "title": "DeepSeek",
+      "url": "https://chat.deepseek.com/a/chat/s/2fd3a2f1-d2d0-4e14-95e6-93408f71f585",
+      "icon": "DS",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Kimi Agent",
+      "url": "https://www.kimi.com/agent",
+      "icon": "KIM",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Ernie (Baidu AI)",
+      "url": "https://ernie.baidu.com/",
+      "icon": "ERN",
+      "order": 30,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Gemini (Google)",
+      "url": "https://gemini.google.com/app?hl=es_419",
+      "icon": "GMN",
+      "order": 40,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Perplexity Finance",
+      "url": "https://www.perplexity.ai/finance/predictions",
+      "icon": "PPF",
+      "order": 50,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Perplexity AI",
+      "url": "https://www.perplexity.ai/",
+      "icon": "PPX",
+      "order": 60,
+      "target": "_blank"
+    },
+    {
+      "category": "ia",
+      "title": "Microsoft Copilot",
+      "url": "https://copilot.microsoft.com/",
+      "icon": "COP",
+      "order": 70,
+      "target": "_blank"
+    },
+    {
+      "category": "id",
+      "title": "RENAPER",
+      "url": "https://www.argentina.gob.ar/interior/renaper",
+      "icon": "RN",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "id",
+      "title": "Saber mi CUIL/CUIT",
+      "url": "https://micuilonline.com.ar/averiguar-cuil-cuit",
+      "icon": "CU",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "misc",
+      "title": "PizzInt Watch",
+      "url": "https://www.pizzint.watch/",
+      "icon": "PZW",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "misc",
+      "title": "Higgsfield AI",
+      "url": "https://higgsfield.ai/",
+      "icon": "HGF",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "misc",
+      "title": "PizzInt Polyglobe",
+      "url": "https://www.pizzint.watch/polyglobe",
+      "icon": "PZG",
+      "order": 30,
+      "target": "_blank"
+    },
+    {
+      "category": "misc",
+      "title": "World Monitor",
+      "url": "https://worldmonitor.app/?lat=20.0000&lon=-1.7601&zoom=1.00&view=global&timeRange=7d&layers=conflicts%2Cbases%2Chotspots%2Cnuclear%2Csanctions%2Cweather%2Ceconomic%2Cwaterways%2Coutages%2Cmilitary%2Cnatural",
+      "icon": "WMN",
+      "order": 40,
+      "target": "_blank"
+    },
+    {
+      "category": "salud",
+      "title": "PAMI Receta Electrónica",
+      "url": "https://cup.pami.org.ar/controllers/loginController.php?redirect=https://recetaelectronica.pami.org.ar",
+      "icon": "PA",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "salud",
+      "title": "SISA",
+      "url": "https://sisa.msal.gov.ar/",
+      "icon": "SI",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "salud",
+      "title": "Precios de medicamentos",
+      "url": "https://www.argentina.gob.ar/precios-de-medicamentos",
+      "icon": "PM",
+      "order": 30,
+      "target": "_blank"
+    },
+    {
+      "category": "tools",
+      "title": "Audio a texto (TurboScribe)",
+      "url": "https://turboscribe.ai/",
+      "icon": "TS",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "tools",
+      "title": "Descargador de videos (SaveFrom)",
+      "url": "https://es.savefrom.net/191Un/sf",
+      "icon": "SF",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "tools",
+      "title": "Zapier",
+      "url": "https://zapier.com/app/home",
+      "icon": "ZAP",
+      "order": 30,
+      "target": "_blank"
+    },
+    {
+      "category": "trabajo",
+      "title": "Netlify",
+      "url": "https://app.netlify.com/",
+      "icon": "NL",
+      "order": 10,
+      "target": "_blank"
+    },
+    {
+      "category": "trabajo",
+      "title": "Correo oficial FAA",
+      "url": "https://webcorreo.faa.mil.ar/",
+      "icon": "FAA",
+      "order": 20,
+      "target": "_blank"
+    },
+    {
+      "category": "trabajo",
+      "title": "eSueldos FAA",
+      "url": "https://esueldos.faa.mil.ar/auth/login",
+      "icon": "ES",
+      "order": 30,
+      "target": "_blank"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# netlify.toml — Configuración de build para escritorio-peter-soft
+#
+# En cada deploy, Netlify ejecuta el script que descarga los links
+# desde Google Sheets (CSV público) y genera /links.json en la raíz.
+#
+# Variable de entorno requerida (configurar en Netlify → Site settings → Env vars):
+#   SHEET_CSV_URL  →  URL del CSV publicado desde Google Sheets
+#
+# El sitio se publica desde la raíz "." (donde está index.html y se genera links.json).
+
+[build]
+  command = "node scripts/fetch_links.mjs"
+  publish = "."
+
+# Encabezados para evitar caché de links.json en el browser
+[[headers]]
+  for = "/links.json"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
