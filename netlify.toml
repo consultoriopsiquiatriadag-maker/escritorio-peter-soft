@@ -1,19 +1,31 @@
-# netlify.toml — Configuración de build para escritorio-peter-soft
+# netlify.toml — PETER-SOFT Panel de Zócalos
 #
-# En cada deploy, Netlify ejecuta el script que descarga los links
-# desde Google Sheets (CSV público) y genera /links.json en la raíz.
+# ARQUITECTURA: sitio estático puro, SIN build step.
+# Los links se cargan en runtime desde Google Sheets CSV (links-loader.js).
+# Esto garantiza que el deploy NUNCA falle por dependencias externas.
 #
-# Variable de entorno requerida (configurar en Netlify → Site settings → Env vars):
-#   SHEET_CSV_URL  →  URL del CSV publicado desde Google Sheets
+# ¿Por qué se eliminó el build step?
+#   - El script fetch_links.mjs requería Node 18+ con fetch nativo.
+#   - Si SHEET_CSV_URL no estaba en las env vars de Netlify → build fallido.
+#   - Ahora links-loader.js hace el fetch directamente en el navegador,
+#     con caché localStorage + fallback a /links.json estático del repo.
 #
-# El sitio se publica desde la raíz "." (donde está index.html y se genera links.json).
+# Para regenerar links.json manualmente (opcional):
+#   node scripts/fetch_links.mjs   (requiere Node 18+)
+#   Luego commitear links.json actualizado como fallback de emergencia.
 
 [build]
-  command = "node scripts/fetch_links.mjs"
   publish = "."
+  # Sin build command → deploy instantáneo y siempre exitoso
 
-# Encabezados para evitar caché de links.json en el browser
+# Cache-Control para links.json (fallback estático en el repo)
 [[headers]]
   for = "/links.json"
   [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Cache-Control = "public, max-age=300, stale-while-revalidate=600"
+
+# Sin caché agresivo para el cargador (sirve la versión más reciente siempre)
+[[headers]]
+  for = "/links-loader.js"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
