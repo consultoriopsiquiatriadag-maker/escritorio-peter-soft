@@ -2083,27 +2083,47 @@
     let sheetLinksData = null; // último JSON descargado de links.json
 
     /**
-     * Convierte el valor del campo "category" del Sheet al ID interno de categoría.
-     * El Sheet debe usar los mismos IDs que DEFAULT.categories (ej: "trabajo", "ia", "salud"…).
-     * Si no coincide, intenta por nombre; si tampoco, cae en "misc".
+     * Normaliza el ID de categoría del Sheet.
+     * Acepta cualquier string: lo convierte a minúsculas y trim.
+     * Si viene vacío, devuelve "misc".
      */
     function catIdFromSheet(category) {
-      const norm = (category || "").toLowerCase().trim();
-      // Coincidencia directa por ID
-      if (state.categories.find(c => c.id === norm)) return norm;
-      // Coincidencia por nombre de categoría (ej: "Trabajo" → "trabajo")
-      const byName = state.categories.find(c => c.name.toLowerCase() === norm);
-      if (byName) return byName.id;
-      // Fallback
-      return "misc";
+      return (category || "misc").toLowerCase().trim() || "misc";
     }
 
-    /** Aplica los links del JSON al state, conservando los widgets locales. */
+    /**
+     * Genera un nombre legible a partir de un ID de categoría.
+     * Ej: "ia-general" → "Ia General" | "psiquiatria" → "Psiquiatria"
+     */
+    function catNameFromId(id) {
+      return id
+        .split(/[-_\s]+/)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+    }
+
+    /** Aplica los links del JSON al state, conservando los widgets locales.
+     *  Auto-registra en state.categories cualquier categoría nueva del Sheet
+     *  que no exista en el DEFAULT (así "ia-general", "psiquiatria", etc. funcionan). */
     function applySheetLinks(data) {
       sheetLinksData = data;
-      // Conservar los widgets (tipo especial, definidos localmente)
+
+      // 1. Recolectar categorías únicas del Sheet (en orden de aparición)
+      const existingIds = new Set(state.categories.map(c => c.id));
+      for (const l of (data.links || [])) {
+        const catId = catIdFromSheet(l.category);
+        if (catId === "widgets") continue; // widgets son solo locales
+        if (!existingIds.has(catId)) {
+          // Agregar categoría nueva al state (sin persistir en localStorage)
+          state.categories.push({ id: catId, name: catNameFromId(catId) });
+          existingIds.add(catId);
+        }
+      }
+
+      // 2. Conservar los widgets locales (tipo especial)
       const widgets = state.links.filter(l => l.type);
-      // Mapear links del Sheet al formato interno
+
+      // 3. Mapear links del Sheet al formato interno
       const incoming = (data.links || []).map(l => ({
         id: uid(),
         cat: catIdFromSheet(l.category),
@@ -2113,7 +2133,8 @@
         tags: [],
         _fromSheet: true,
       }));
-      // Reemplazar links no-widget con los del Sheet
+
+      // 4. Reemplazar links no-widget con los del Sheet
       state.links = [...widgets, ...incoming];
     }
 
