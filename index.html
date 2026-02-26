@@ -2249,8 +2249,21 @@
     toggleEdit.addEventListener("click", ()=>{ setEditing(!editing); render(); });
     addLinkBtn.addEventListener("click", ()=>{ setEditing(true); openAdd(); });
 
-    resetBtn.addEventListener("click", ()=>{
+    resetBtn.addEventListener("click", async ()=>{
       if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+
+      // Si la fuente es Google Sheets, el "reset" recarga desde links.json
+      if(linksSource === "sheet"){
+        if(!confirm("¿Recargar links desde Google Sheets y descartar cambios locales?")) return;
+        toast("Recargando desde Google Sheet…");
+        await loadLinksFromJSON();
+        setEditing(false);
+        render();
+        toast("✅ Links restaurados desde Google Sheets.");
+        return;
+      }
+
+      // Fuente local: reset al DEFAULT hardcodeado (comportamiento original)
       if(!confirm("Resetear a configuración inicial?")) return;
       const prevHistory = state.history ? [...state.history] : [];
       state = structuredClone(DEFAULT);
