@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AXIOM — 3D-First Digital Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --nb: #4488ff;
+      --np: #7c3aed;
+      --nc: #06d6d9;
+      --ng: #34d399;
+      --no: #fb923c;
+      --bg: #030508;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: auto; }
+    body {
+      background: var(--bg);
+      color: #dde4f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── OVERLAYS ── */
+    #noise {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: .032;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 300px;
+    }
+    #vignette {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 33%, rgba(3,5,8,.9) 100%);
+    }
+    #bg { position: fixed; inset: 0; z-index: 0; display: block; }
+
+    /* ── GLASS ── */
+    .glass {
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+    .glass-md {
+      background: rgba(255,255,255,.055);
+      backdrop-filter: blur(24px) saturate(200%);
+      -webkit-backdrop-filter: blur(24px) saturate(200%);
+      border: 1px solid rgba(255,255,255,.1);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,.08);
+      backdrop-filter: blur(32px) saturate(220%);
+      -webkit-backdrop-filter: blur(32px) saturate(220%);
+      border: 1px solid rgba(255,255,255,.13);
+    }
+
+    /* ── TICKER ── */
+    .ticker-wrap { overflow: hidden; }
+    .ticker-track {
+      display: flex; white-space: nowrap;
+      animation: marquee 55s linear infinite;
+      width: max-content;
+    }
+    .ticker-track:hover { animation-play-state: paused; }
+    @keyframes marquee {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .t-item {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0 16px; height: 36px;
+      border-right: 1px solid rgba(255,255,255,.05);
+    }
+    .t-lbl { font: 600 9px/1 ui-monospace,monospace; color: rgba(255,255,255,.3); letter-spacing: .1em; text-transform: uppercase; }
+    .t-val { font: 700 11px/1 ui-monospace,monospace; color: #e2e8f0; }
+    .t-up  { font: 600 10px/1 ui-monospace,monospace; color: #34d399; }
+    .t-dn  { font: 600 10px/1 ui-monospace,monospace; color: #f87171; }
+    .t-neu { font: 600 10px/1 ui-monospace,monospace; color: rgba(255,255,255,.38); }
+
+    /* ── GRADIENT TEXT ── */
+    .g-blue   { background: linear-gradient(135deg,#93c5fd,var(--nb));  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .g-main   { background: linear-gradient(135deg,#93c5fd 0%,var(--nb) 45%,var(--np) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .g-purple { background: linear-gradient(135deg,#c4b5fd,var(--np));  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .g-cyan   { background: linear-gradient(135deg,#67e8f9,var(--nc));  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .g-green  { background: linear-gradient(135deg,#6ee7b7,var(--ng));  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .g-orange { background: linear-gradient(135deg,#fed7aa,var(--no));  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+    /* ── SIDEBAR ── */
+    .nav-lnk { color: rgba(255,255,255,.28); transition: color .2s; }
+    .nav-lnk:hover, .nav-lnk.active { color: var(--nb); }
+    .nav-pip { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,.18); transition: all .25s; }
+    .nav-lnk.active .nav-pip { background: var(--nb); box-shadow: 0 0 6px var(--nb); }
+
+    /* ── CARDS ── */
+    .card { transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+    .card:hover { transform: translateY(-4px); }
+    .card-b:hover { border-color: rgba(68,136,255,.38)  !important; box-shadow: 0 0 30px rgba(68,136,255,.14),  0 20px 50px rgba(0,0,0,.45); }
+    .card-p:hover { border-color: rgba(124,58,237,.38)  !important; box-shadow: 0 0 30px rgba(124,58,237,.16), 0 20px 50px rgba(0,0,0,.45); }
+    .card-c:hover { border-color: rgba(6,214,217,.32)   !important; box-shadow: 0 0 30px rgba(6,214,217,.13),  0 20px 50px rgba(0,0,0,.45); }
+    .card-g:hover { border-color: rgba(52,211,153,.32)  !important; box-shadow: 0 0 30px rgba(52,211,153,.13), 0 20px 50px rgba(0,0,0,.45); }
+    .card-o:hover { border-color: rgba(251,146,60,.32)  !important; box-shadow: 0 0 30px rgba(251,146,60,.13), 0 20px 50px rgba(0,0,0,.45); }
+
+    /* ── BUTTONS ── */
+    .btn-main { position: relative; overflow: hidden; transition: border-color .3s, box-shadow .3s; }
+    .btn-main:hover {
+      border-color: rgba(68,136,255,.55) !important;
+      box-shadow: 0 0 26px rgba(68,136,255,.3), 0 0 60px rgba(68,136,255,.08);
+    }
+    .btn-ghost { transition: color .25s, border-color .25s; }
+    .btn-ghost:hover { color: white !important; border-color: rgba(255,255,255,.3) !important; }
+
+    /* ── TAGS ── */
+    .tag { font: 600 9px/1 ui-monospace,monospace; letter-spacing: .12em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
+    .tag-b { background:rgba(68,136,255,.1);  color:rgba(68,136,255,.85);  border:1px solid rgba(68,136,255,.2);  }
+    .tag-p { background:rgba(124,58,237,.1);  color:rgba(167,139,250,.85); border:1px solid rgba(124,58,237,.22); }
+    .tag-c { background:rgba(6,214,217,.08);  color:rgba(103,232,249,.85); border:1px solid rgba(6,214,217,.18);  }
+    .tag-g { background:rgba(52,211,153,.08); color:rgba(52,211,153,.85);  border:1px solid rgba(52,211,153,.18); }
+    .tag-o { background:rgba(251,146,60,.08); color:rgba(251,146,60,.85);  border:1px solid rgba(251,146,60,.18); }
+
+    /* ── FADE-UP pre-animation state ── */
+    .fu { opacity: 0; transform: translateY(32px); }
+
+    /* ── FORM ── */
+    .inp {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09);
+      border-radius: 10px; padding: 12px 14px; color: #dde4f0;
+      font-size: 13px; width: 100%; outline: none;
+      transition: border-color .25s, box-shadow .25s; font-family: inherit;
+    }
+    .inp::placeholder { color: rgba(255,255,255,.22); }
+    .inp:focus { border-color: rgba(68,136,255,.5); box-shadow: 0 0 0 3px rgba(68,136,255,.1); }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(68,136,255,.3); border-radius: 2px; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+    .anim-pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes ring { 0%{transform:scale(1);opacity:.55} 100%{transform:scale(2.8);opacity:0} }
+    .anim-ring { animation: ring 2.2s ease-out infinite; }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    .skeleton {
+      background: linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);
+      background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;
+    }
+
+    /* ── NEWS ITEM ── */
+    .news-item { transition: background .2s; border-radius: 8px; }
+    .news-item:hover { background: rgba(255,255,255,.04); }
+
+    /* ── QUOTE ── */
+    .quote-mark { font: 700 72px/0.75 Georgia,serif; color: rgba(68,136,255,.13); }
+
+    /* ── MOBILE NAV ── */
+    .mob-itm { display:flex; flex-direction:column; align-items:center; gap:2px; color:rgba(255,255,255,.3); font:600 8px/1 ui-monospace,monospace; letter-spacing:.06em; text-transform:uppercase; text-decoration:none; transition:color .2s; }
+    .mob-itm.active, .mob-itm:hover { color: var(--nb); }
+  </style>
+</head>
+<body>
+
+<!-- THREE.JS CANVAS -->
+<canvas id="bg"></canvas>
+<div id="noise" aria-hidden="true"></div>
+<div id="vignette" aria-hidden="true"></div>
+
+<!-- ══════════════════════════════════════════════════ TOP BAR ══ -->
+<header id="topbar" class="fixed top-0 left-0 right-0 z-50 h-9 glass flex items-center" style="border-bottom:1px solid rgba(255,255,255,.05)">
+  <!-- Brand -->
+  <div class="flex-shrink-0 flex items-center gap-2 px-4 h-full" style="border-right:1px solid rgba(255,255,255,.06)">
+    <div class="w-5 h-5 rounded flex items-center justify-center" style="background:linear-gradient(135deg,#4488ff,#7c3aed)">
+      <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M5 0L9.33 7.5H0.67Z" fill="white"/></svg>
+    </div>
+    <span class="font-mono font-black text-xs text-white" style="letter-spacing:.22em">AXIOM</span>
+  </div>
+  <!-- Scrolling ticker -->
+  <div class="ticker-wrap flex-1 h-full">
+    <div class="ticker-track h-full items-center flex" id="tickerTrack">
+      <div class="t-item"><span class="t-lbl">INIT</span><span class="t-val skeleton" style="width:50px;height:9px;display:inline-block"></span></div>
+    </div>
+  </div>
+  <!-- Live indicator -->
+  <div class="flex-shrink-0 flex items-center gap-2 px-4 h-full" style="border-left:1px solid rgba(255,255,255,.06)">
+    <div class="relative w-2 h-2 flex-shrink-0">
+      <div class="absolute inset-0 rounded-full anim-pulse" style="background:#34d399"></div>
+    </div>
+    <span class="font-mono text-xs font-semibold" style="color:#34d399">LIVE</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════ SIDEBAR ══ -->
+<nav class="hidden md:flex fixed top-9 left-0 bottom-0 z-40 w-14 glass flex-col items-center py-7 gap-5" style="border-right:1px solid rgba(255,255,255,.05)">
+  <div class="w-5 h-px mb-1" style="background:rgba(255,255,255,.09)"></div>
+
+  <a href="#hero"     data-sec="hero"     class="nav-lnk active flex flex-col items-center gap-1.5">
+    <div class="w-9 h-9 rounded-xl glass flex items-center justify-center">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <div class="nav-pip"></div>
+  </a>
+
+  <a href="#services" data-sec="services" class="nav-lnk flex flex-col items-center gap-1.5">
+    <div class="w-9 h-9 rounded-xl glass flex items-center justify-center">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+    </div>
+    <div class="nav-pip"></div>
+  </a>
+
+  <a href="#data"     data-sec="data"     class="nav-lnk flex flex-col items-center gap-1.5">
+    <div class="w-9 h-9 rounded-xl glass flex items-center justify-center">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </div>
+    <div class="nav-pip"></div>
+  </a>
+
+  <a href="#work"     data-sec="work"     class="nav-lnk flex flex-col items-center gap-1.5">
+    <div class="w-9 h-9 rounded-xl glass flex items-center justify-center">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </div>
+    <div class="nav-pip"></div>
+  </a>
+
+  <a href="#contact"  data-sec="contact"  class="nav-lnk flex flex-col items-center gap-1.5">
+    <div class="w-9 h-9 rounded-xl glass flex items-center justify-center">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+    </div>
+    <div class="nav-pip"></div>
+  </a>
+
+  <div class="mt-auto flex flex-col items-center gap-3">
+    <div class="w-px h-8" style="background:rgba(255,255,255,.07)"></div>
+    <div class="w-2 h-2 rounded-full" style="background:#34d399;box-shadow:0 0 8px #34d399" title="All systems operational"></div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════ MAIN ══ -->
+<main class="md:ml-14 pt-9 relative z-10">
+
+  <!-- ────────────────── HERO ────────────────── -->
+  <section id="hero" class="relative min-h-screen flex items-center px-6 sm:px-10 md:px-14 lg:px-20">
+    <div class="w-full max-w-6xl grid lg:grid-cols-5 gap-10 lg:gap-14 items-center">
+
+      <!-- Left: Headline + CTAs + Metrics -->
+      <div class="lg:col-span-3">
+        <div class="fu flex items-center gap-3 mb-5">
+          <div class="w-5 h-px" style="background:var(--nb)"></div>
+          <span class="font-mono text-xs tracking-[.28em] uppercase" style="color:var(--nb)">// 3D-First Digital Agency</span>
+        </div>
+        <h1 class="fu font-black tracking-tighter leading-[.91] text-white mb-6" style="font-size:clamp(2.8rem,8vw,6rem)">
+          WE BUILD<br/><span class="g-main">DIGITAL<br/>REALITIES</span>
+        </h1>
+        <p class="fu text-base md:text-lg mb-10 max-w-lg" style="color:rgba(255,255,255,.46);line-height:1.72">
+          Strategy, WebGL &amp; AI — where health-tech, aviation medicine, and precision UX converge into dimensional systems that actually ship.
+        </p>
+        <div class="fu flex flex-wrap gap-4 mb-12">
+          <button class="btn-main glass-strong px-7 py-3.5 rounded-2xl font-semibold text-sm text-white cursor-pointer" style="border:1px solid rgba(255,255,255,.12)">
+            Book a Demo
+          </button>
+          <button class="btn-ghost px-7 py-3.5 rounded-2xl font-semibold text-sm cursor-pointer" style="color:rgba(255,255,255,.44);border:1px solid rgba(255,255,255,.1)">
+            View Work &nbsp;→
+          </button>
+        </div>
+        <div class="fu grid grid-cols-3 gap-5 max-w-xs" style="border-top:1px solid rgba(255,255,255,.07);padding-top:1.4rem">
+          <div>
+            <div class="font-mono font-black text-xl g-blue counter" data-target="127" data-suffix="+">0+</div>
+            <div class="text-xs mt-1" style="color:rgba(255,255,255,.3)">Projects</div>
+          </div>
+          <div>
+            <div class="font-mono font-black text-xl g-purple counter" data-target="98" data-suffix="%">0%</div>
+            <div class="text-xs mt-1" style="color:rgba(255,255,255,.3)">Satisfaction</div>
+          </div>
+          <div>
+            <div class="font-mono font-black text-xl g-cyan counter" data-target="9" data-suffix="yr">0yr</div>
+            <div class="text-xs mt-1" style="color:rgba(255,255,255,.3)">In Market</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Live widgets -->
+      <div class="lg:col-span-2 flex flex-col gap-4">
+
+        <!-- Daily Wisdom — ZenQuotes / Stoic -->
+        <div class="fu glass-md rounded-2xl p-6 card card-b" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-1.5 h-1.5 rounded-full" style="background:var(--nb)"></div>
+            <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(68,136,255,.72)">Daily Wisdom</span>
+          </div>
+          <div class="quote-mark">"</div>
+          <p id="quoteText" class="text-sm leading-relaxed mt-1 mb-3" style="color:rgba(255,255,255,.68)">
+            <span class="skeleton" style="display:block;height:11px;width:90%;margin-bottom:7px"></span>
+            <span class="skeleton" style="display:block;height:11px;width:72%"></span>
+          </p>
+          <div id="quoteAuthor" class="font-mono text-xs" style="color:rgba(255,255,255,.32)">— Loading...</div>
+        </div>
+
+        <!-- Live Exchange Rates -->
+        <div class="fu glass-md rounded-2xl p-5 card card-p" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 rounded-full anim-pulse" style="background:var(--np)"></div>
+              <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(124,58,237,.78)">Live Rates · USD Base</span>
+            </div>
+            <span class="font-mono text-xs" id="rateTime" style="color:rgba(255,255,255,.22)">—</span>
+          </div>
+          <div id="ratesGrid" class="grid grid-cols-2 gap-3">
+            <div class="skeleton" style="height:34px;border-radius:7px"></div>
+            <div class="skeleton" style="height:34px;border-radius:7px"></div>
+            <div class="skeleton" style="height:34px;border-radius:7px"></div>
+            <div class="skeleton" style="height:34px;border-radius:7px"></div>
+          </div>
+        </div>
+
+        <!-- Dev Humor — JokeAPI -->
+        <div class="fu glass rounded-2xl p-5 card card-c" style="border:1px solid rgba(255,255,255,.07)">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-1.5 h-1.5 rounded-full" style="background:var(--nc)"></div>
+            <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(6,214,217,.65)">Dev Humor · JokeAPI</span>
+          </div>
+          <p id="jokeText" class="text-xs leading-relaxed" style="color:rgba(255,255,255,.52)">
+            <span class="skeleton" style="display:block;height:10px;width:94%;margin-bottom:5px"></span>
+            <span class="skeleton" style="display:block;height:10px;width:78%"></span>
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <!-- Scroll cue -->
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
+      <span class="font-mono text-xs tracking-[.22em] uppercase" style="color:rgba(255,255,255,.18)">Scroll</span>
+      <div class="w-px h-10" style="background:linear-gradient(to bottom,rgba(68,136,255,.45),transparent)"></div>
+    </div>
+  </section>
+
+  <!-- ────────────────── SERVICES ────────────────── -->
+  <section id="services" class="relative min-h-screen flex items-center px-6 sm:px-10 md:px-14 lg:px-20 py-24">
+    <div class="w-full max-w-5xl">
+      <div class="fu flex items-center gap-3 mb-2">
+        <div class="w-5 h-px" style="background:rgba(255,255,255,.17)"></div>
+        <span class="font-mono text-xs tracking-[.28em] uppercase" style="color:rgba(255,255,255,.28)">// Services</span>
+      </div>
+      <h2 class="fu text-4xl md:text-5xl font-black tracking-tighter mb-3 text-white">What We Do Best</h2>
+      <p class="fu text-base mb-12 max-w-xl" style="color:rgba(255,255,255,.37)">Three verticals. One mission: build technology that operates at the precision of medicine and the scale of aerospace.</p>
+
+      <div class="grid md:grid-cols-3 gap-5">
+        <!-- Medical Intelligence -->
+        <div class="fu glass-md rounded-2xl p-7 card card-g" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="w-10 h-10 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.18)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <span class="tag tag-g mb-3 inline-block">01 — Health Tech</span>
+          <h3 class="text-lg font-bold text-white mt-3 mb-3">Medical Intelligence</h3>
+          <p class="text-sm leading-relaxed mb-6" style="color:rgba(255,255,255,.42)">Clinical dashboards, psychiatry workflow apps, and AI-powered diagnostic interfaces engineered to HIPAA standards with real-time patient telemetry.</p>
+          <div class="pt-5 grid grid-cols-2 gap-3" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-lg g-green">HIPAA</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Compliant</div></div>
+            <div><div class="font-mono font-bold text-lg g-green">99.9%</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Uptime SLA</div></div>
+          </div>
+        </div>
+
+        <!-- Aeromedical Systems -->
+        <div class="fu glass-md rounded-2xl p-7 card card-b" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="w-10 h-10 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(68,136,255,.08);border:1px solid rgba(68,136,255,.18)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4488ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 20 3c-1-1-3-1-4.5.5L12 7 4.8 5.2A.8.8 0 004 6l3.7 3.7-3.2 1.3a.7.7 0 000 1.3l2.2.9.9 2.2c.2.4.7.5 1 .3l1.3-3.2L15 15.3l.8 3.7a.8.8 0 00.8.6.8.8 0 00.7-.5l.5-.9z"/></svg>
+          </div>
+          <span class="tag tag-b mb-3 inline-block">02 — Aviation Med</span>
+          <h3 class="text-lg font-bold text-white mt-3 mb-3">Aeromedical Systems</h3>
+          <p class="text-sm leading-relaxed mb-6" style="color:rgba(255,255,255,.42)">Pilot health monitoring, aeromedical certification platforms, and flight-crew psychomotor assessment systems connected to live aviation APIs.</p>
+          <div class="pt-5 grid grid-cols-2 gap-3" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-lg g-blue">FAA</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Aligned</div></div>
+            <div><div class="font-mono font-bold text-lg g-blue">Real-Time</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Data Feed</div></div>
+          </div>
+        </div>
+
+        <!-- AI & WebGL -->
+        <div class="fu glass-md rounded-2xl p-7 card card-p" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="w-10 h-10 rounded-xl mb-5 flex items-center justify-center" style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.18)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          </div>
+          <span class="tag tag-p mb-3 inline-block">03 — Intelligence</span>
+          <h3 class="text-lg font-bold text-white mt-3 mb-3">AI &amp; 3D Web</h3>
+          <p class="text-sm leading-relaxed mb-6" style="color:rgba(255,255,255,.42)">LLM-powered clinical decision support, WebGL 3D interfaces, and predictive analytics pipelines that learn from every patient interaction.</p>
+          <div class="pt-5 grid grid-cols-2 gap-3" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-lg g-purple">60fps</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">3D Target</div></div>
+            <div><div class="font-mono font-bold text-lg g-purple">&lt;14ms</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">AI Inference</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────── LIVE DATA PANEL ────────────────── -->
+  <section id="data" class="relative min-h-screen flex items-center px-6 sm:px-10 md:px-14 lg:px-20 py-24">
+    <div class="w-full max-w-5xl">
+      <div class="fu flex items-center gap-3 mb-2">
+        <div class="w-5 h-px" style="background:rgba(255,255,255,.17)"></div>
+        <span class="font-mono text-xs tracking-[.28em] uppercase" style="color:rgba(255,255,255,.28)">// Live Data Feed</span>
+      </div>
+      <h2 class="fu text-4xl md:text-5xl font-black tracking-tighter mb-3 text-white">Real-Time Intelligence</h2>
+      <p class="fu text-base mb-12" style="color:rgba(255,255,255,.37)">Live feeds from technology, health, and aviation data streams — Bloomberg-grade, browser-native, zero backend.</p>
+
+      <div class="grid lg:grid-cols-3 gap-5">
+
+        <!-- News Feed (spans 2 cols) -->
+        <div class="fu lg:col-span-2 glass-md rounded-2xl p-6 card card-b" style="border:1px solid rgba(255,255,255,.08)">
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+              <div class="w-1.5 h-1.5 rounded-full anim-pulse" style="background:var(--nb)"></div>
+              <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(68,136,255,.75)">Tech &amp; Health News</span>
+            </div>
+            <span class="tag tag-b">Currents API</span>
+          </div>
+          <div id="newsFeed" class="flex flex-col gap-0.5">
+            <div class="news-item p-3"><div class="skeleton" style="height:11px;width:80%;margin-bottom:6px"></div><div class="skeleton" style="height:9px;width:50%"></div></div>
+            <div class="news-item p-3"><div class="skeleton" style="height:11px;width:72%;margin-bottom:6px"></div><div class="skeleton" style="height:9px;width:42%"></div></div>
+            <div class="news-item p-3"><div class="skeleton" style="height:11px;width:85%;margin-bottom:6px"></div><div class="skeleton" style="height:9px;width:58%"></div></div>
+            <div class="news-item p-3"><div class="skeleton" style="height:11px;width:65%;margin-bottom:6px"></div><div class="skeleton" style="height:9px;width:46%"></div></div>
+            <div class="news-item p-3"><div class="skeleton" style="height:11px;width:78%;margin-bottom:6px"></div><div class="skeleton" style="height:9px;width:54%"></div></div>
+          </div>
+          <div class="mt-4 pt-4" style="border-top:1px solid rgba(255,255,255,.05)">
+            <span class="font-mono text-xs" style="color:rgba(255,255,255,.2)">Add <code style="color:rgba(68,136,255,.5)">CURRENTS_API_KEY</code> in CONFIG for live feed &mdash; or <code style="color:rgba(68,136,255,.5)">NEWSDATA_API_KEY</code></span>
+          </div>
+        </div>
+
+        <!-- Right column widgets -->
+        <div class="fu flex flex-col gap-5">
+
+          <!-- Liturgical Calendar -->
+          <div class="glass-md rounded-2xl p-5 card card-g" style="border:1px solid rgba(255,255,255,.08)">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-1.5 h-1.5 rounded-full" style="background:var(--ng)"></div>
+              <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(52,211,153,.72)">Calendar · Today</span>
+            </div>
+            <div id="calWidget">
+              <div class="skeleton" style="height:32px;width:60%;margin-bottom:10px;border-radius:6px"></div>
+              <div class="skeleton" style="height:10px;width:75%"></div>
+            </div>
+          </div>
+
+          <!-- Aviation Status -->
+          <div class="glass-md rounded-2xl p-5 flex-1 card card-o" style="border:1px solid rgba(255,255,255,.08)">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full" style="background:var(--no)"></div>
+                <span class="font-mono text-xs tracking-widest uppercase" style="color:rgba(251,146,60,.72)">Aviation · Status</span>
+              </div>
+              <span class="tag tag-o">AviationAPI</span>
+            </div>
+            <div id="avWidget" class="flex flex-col gap-3">
+              <div class="skeleton" style="height:10px;width:80%"></div>
+              <div class="skeleton" style="height:10px;width:64%"></div>
+              <div class="skeleton" style="height:10px;width:72%"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────── WORK ────────────────── -->
+  <section id="work" class="relative min-h-screen flex items-center px-6 sm:px-10 md:px-14 lg:px-20 py-24">
+    <div class="w-full max-w-5xl">
+      <div class="fu flex items-center gap-3 mb-2">
+        <div class="w-5 h-px" style="background:rgba(255,255,255,.17)"></div>
+        <span class="font-mono text-xs tracking-[.28em] uppercase" style="color:rgba(255,255,255,.28)">// Selected Work</span>
+      </div>
+      <h2 class="fu text-4xl md:text-5xl font-black tracking-tighter mb-3 text-white">Projects That Operate</h2>
+      <p class="fu text-base mb-12" style="color:rgba(255,255,255,.37)">Mission-critical platforms built to clinical precision — not just products, but systems that clinicians and pilots trust daily.</p>
+
+      <div class="grid md:grid-cols-2 gap-5">
+
+        <!-- MindOS -->
+        <div class="fu glass-md rounded-2xl p-7 card card-g" style="border:1px solid rgba(255,255,255,.08);min-height:210px">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <span class="tag tag-g mb-3 inline-block">Psychiatry · SaaS</span>
+              <h3 class="text-xl font-bold text-white mt-3 mb-2">MindOS</h3>
+              <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,.42);max-width:28ch">AI-powered outpatient psychiatry platform: DSM-5 screening, Rx management, and appointment scheduling in a single glass panel.</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-3" style="background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.15)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+          <div class="pt-4 flex gap-6" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-sm g-green">3,200+</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Patients</div></div>
+            <div><div class="font-mono font-bold text-sm g-green">DSM-5</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Integrated</div></div>
+            <div><div class="font-mono font-bold text-sm g-green">99.8%</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Uptime</div></div>
+          </div>
+        </div>
+
+        <!-- AeroFit Cert -->
+        <div class="fu glass-md rounded-2xl p-7 card card-b" style="border:1px solid rgba(255,255,255,.08);min-height:210px">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <span class="tag tag-b mb-3 inline-block">Aviation Med · Platform</span>
+              <h3 class="text-xl font-bold text-white mt-3 mb-2">AeroFit Cert</h3>
+              <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,.42);max-width:28ch">Aeromedical fitness certification system with psychophysiological assessments and real-time airport API integration for flight-crew health management.</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-3" style="background:rgba(68,136,255,.07);border:1px solid rgba(68,136,255,.15)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4488ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 20 3c-1-1-3-1-4.5.5L12 7 4.8 5.2A.8.8 0 004 6l3.7 3.7-3.2 1.3a.7.7 0 000 1.3l2.2.9.9 2.2c.2.4.7.5 1 .3l1.3-3.2L15 15.3l.8 3.7a.8.8 0 00.8.6.8.8 0 00.7-.5l.5-.9z"/></svg>
+            </div>
+          </div>
+          <div class="pt-4 flex gap-6" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-sm g-blue">14</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Airlines</div></div>
+            <div><div class="font-mono font-bold text-sm g-blue">FAA</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Aligned</div></div>
+            <div><div class="font-mono font-bold text-sm g-blue">2.1ms</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Latency</div></div>
+          </div>
+        </div>
+
+        <!-- NeuralRx -->
+        <div class="fu glass-md rounded-2xl p-7 card card-p" style="border:1px solid rgba(255,255,255,.08);min-height:210px">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <span class="tag tag-p mb-3 inline-block">AI · Mental Health</span>
+              <h3 class="text-xl font-bold text-white mt-3 mb-2">NeuralRx</h3>
+              <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,.42);max-width:28ch">LLM-assisted psychopharmacology decision support: drug interactions, dosing guidance, and outcome prediction trained on clinical trial data.</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-3" style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.15)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </div>
+          </div>
+          <div class="pt-4 flex gap-6" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-sm g-purple">GPT-4o</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">AI Core</div></div>
+            <div><div class="font-mono font-bold text-sm g-purple">4,800</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Queries/day</div></div>
+            <div><div class="font-mono font-bold text-sm g-purple">97.4%</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Accuracy</div></div>
+          </div>
+        </div>
+
+        <!-- Verdant Globe -->
+        <div class="fu glass-md rounded-2xl p-7 card card-c" style="border:1px solid rgba(255,255,255,.08);min-height:210px">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <span class="tag tag-c mb-3 inline-block">3D Web · Epidemiology</span>
+              <h3 class="text-xl font-bold text-white mt-3 mb-2">Verdant Globe</h3>
+              <p class="text-sm leading-relaxed" style="color:rgba(255,255,255,.42);max-width:28ch">Real-time epidemiological data on a Three.js 3D globe with outbreak heat-mapping and predictive spread models fed by WHO live API.</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-3" style="background:rgba(6,214,217,.06);border:1px solid rgba(6,214,217,.15)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06d6d9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            </div>
+          </div>
+          <div class="pt-4 flex gap-6" style="border-top:1px solid rgba(255,255,255,.06)">
+            <div><div class="font-mono font-bold text-sm g-cyan">190+</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Countries</div></div>
+            <div><div class="font-mono font-bold text-sm g-cyan">Three.js</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">3D Engine</div></div>
+            <div><div class="font-mono font-bold text-sm g-cyan">WHO Live</div><div class="text-xs mt-0.5" style="color:rgba(255,255,255,.3)">Data Feed</div></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ────────────────── CONTACT ────────────────── -->
+  <section id="contact" class="relative min-h-screen flex items-center px-6 sm:px-10 md:px-14 lg:px-20 py-24">
+    <div class="w-full max-w-4xl">
+      <div class="fu flex items-center gap-3 mb-2">
+        <div class="w-5 h-px" style="background:rgba(255,255,255,.17)"></div>
+        <span class="font-mono text-xs tracking-[.28em] uppercase" style="color:rgba(255,255,255,.28)">// Contact</span>
+      </div>
+      <h2 class="fu text-4xl md:text-5xl font-black tracking-tighter mb-3 text-white">Let's Build Together</h2>
+      <p class="fu text-base mb-12" style="color:rgba(255,255,255,.37)">Mission-critical software deserves a partner who understands both the code and the clinical context.</p>
+
+      <div class="grid md:grid-cols-5 gap-6">
+        <!-- Form -->
+        <div class="fu md:col-span-3 glass-md rounded-2xl p-8" style="border:1px solid rgba(255,255,255,.08)">
+          <form id="cForm" novalidate class="flex flex-col gap-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,.36)">Name</label>
+                <input type="text" name="name" placeholder="Dr. Alex Morgan" class="inp" required />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,.36)">Email</label>
+                <input type="email" name="email" placeholder="alex@hospital.io" class="inp" required />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold mb-2" style="color:rgba(255,255,255,.36)">Project Brief</label>
+              <textarea name="msg" rows="5" placeholder="Describe your project: clinical domain, current stack, key challenges, and timeline..." class="inp" style="resize:vertical" required></textarea>
+            </div>
+            <button type="submit" class="btn-main glass-strong py-3.5 rounded-2xl font-semibold text-sm text-white w-full cursor-pointer" style="border:1px solid rgba(255,255,255,.12)">
+              Send Message &nbsp;→
+            </button>
+            <p id="formMsg" class="text-center font-mono text-xs hidden" style="color:#34d399"></p>
+          </form>
+        </div>
+
+        <!-- Availability + Info -->
+        <div class="fu md:col-span-2 flex flex-col gap-5">
+          <div class="glass-md rounded-2xl p-6" style="border:1px solid rgba(52,211,153,.18)">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="relative w-3 h-3 flex-shrink-0">
+                <div class="absolute inset-0 rounded-full" style="background:#34d399;box-shadow:0 0 10px #34d399"></div>
+                <div class="absolute inset-0 rounded-full anim-ring" style="background:#34d399"></div>
+              </div>
+              <span class="font-mono text-xs font-bold tracking-widest uppercase" style="color:#34d399">Available Q2 2025</span>
+            </div>
+            <p class="text-sm mb-5 leading-relaxed" style="color:rgba(255,255,255,.42)">Taking 3 new clinical or aviation technology projects for Q2. Priority for psychiatry, health-tech, and aeromedical systems.</p>
+            <div class="pt-4" style="border-top:1px solid rgba(255,255,255,.06)">
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs" style="color:rgba(255,255,255,.3)">Slots Remaining</span>
+                <span class="font-mono text-xs font-bold" style="color:#34d399">3 / 5</span>
+              </div>
+              <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,.07)">
+                <div class="h-full rounded-full" style="width:60%;background:linear-gradient(to right,#34d399,#059669)"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 flex flex-col gap-4" style="border:1px solid rgba(255,255,255,.07)">
+            <div>
+              <div class="font-mono text-xs mb-1" style="color:rgba(255,255,255,.28)">Response Time</div>
+              <div class="font-semibold text-sm text-white">≤ 4 hours</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:1rem">
+              <div class="font-mono text-xs mb-1" style="color:rgba(255,255,255,.28)">Base Location</div>
+              <div class="font-semibold text-sm text-white">New York · Remote Global</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:1rem">
+              <div class="font-mono text-xs mb-1" style="color:rgba(255,255,255,.28)">Minimum Project</div>
+              <div class="font-semibold text-sm text-white">$25,000 USD</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.05);padding-top:1rem">
+              <div class="font-mono text-xs mb-1" style="color:rgba(255,255,255,.28)">Specialties</div>
+              <div class="text-sm text-white">Psychiatry · Aviation Med · AI / WebGL</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="px-6 sm:px-10 md:px-14 lg:px-20 py-8 relative z-10" style="border-top:1px solid rgba(255,255,255,.05)">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+      <div class="flex items-center gap-3">
+        <div class="w-5 h-5 rounded flex items-center justify-center" style="background:linear-gradient(135deg,#4488ff,#7c3aed)">
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M5 0L9.33 7.5H0.67Z" fill="white"/></svg>
+        </div>
+        <span class="font-mono font-black text-sm tracking-[.22em] text-white">AXIOM</span>
+        <span class="font-mono text-xs" style="color:rgba(255,255,255,.18)">© 2025</span>
+      </div>
+      <div class="flex gap-5">
+        <a href="#" class="font-mono text-xs" style="color:rgba(255,255,255,.28)" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.28)'">Privacy</a>
+        <a href="#" class="font-mono text-xs" style="color:rgba(255,255,255,.28)" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.28)'">LinkedIn</a>
+        <a href="#" class="font-mono text-xs" style="color:rgba(255,255,255,.28)" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.28)'">Dribbble</a>
+        <a href="#" class="font-mono text-xs" style="color:rgba(255,255,255,.28)" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.28)'">GitHub</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-1.5 h-1.5 rounded-full" style="background:#34d399;box-shadow:0 0 6px #34d399"></div>
+        <span class="font-mono text-xs" style="color:rgba(255,255,255,.2)">All systems nominal</span>
+      </div>
+    </div>
+  </footer>
+
+</main>
+
+<!-- ══════════════════════════════════════════════════ MOBILE NAV ══ -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 glass flex items-center justify-around h-16 px-2" style="border-top:1px solid rgba(255,255,255,.07)">
+  <a href="#hero"     data-sec="hero"     class="mob-itm active">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Home</span>
+  </a>
+  <a href="#services" data-sec="services" class="mob-itm">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg>
+    <span>Services</span>
+  </a>
+  <a href="#data"     data-sec="data"     class="mob-itm">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <span>Data</span>
+  </a>
+  <a href="#work"     data-sec="work"     class="mob-itm">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    <span>Work</span>
+  </a>
+  <a href="#contact"  data-sec="contact"  class="mob-itm">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+    <span>Contact</span>
+  </a>
+</nav>
+
+<script>
+/* ════════════════════════════════════ API CONFIG ════════════════ */
+/* Add your free API keys below to unlock live feeds               */
+const CONFIG = {
+  CURRENTS_API_KEY:  '',   // currentsapi.services  — free tier available
+  NEWSDATA_API_KEY:  '',   // newsdata.io           — free tier available
+  HUMOR_API_KEY:     '',   // humorapi.com          — free tier available
+  AVIATION_API_KEY:  '',   // docs.aviationapi.com  — free tier available
+};
+
+/* ════════════════════════════════════ THREE.JS SCENE ════════════ */
+const canvas = document.getElementById('bg');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+if (THREE.SRGBColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x030508);
+scene.fog = new THREE.FogExp2(0x030508, 0.042);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 0, 5.5);
+
+/* Procedural env map — no external files needed */
+(function buildEnvMap() {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const ec = document.createElement('canvas');
+  ec.width = 512; ec.height = 256;
+  const cx = ec.getContext('2d');
+  const bgGrad = cx.createLinearGradient(0, 0, 512, 256);
+  bgGrad.addColorStop(0,   '#020610');
+  bgGrad.addColorStop(0.5, '#050218');
+  bgGrad.addColorStop(1,   '#020508');
+  cx.fillStyle = bgGrad; cx.fillRect(0, 0, 512, 256);
+  const spots = [
+    [110,  80, 115, 'rgba(68,136,255,0.48)'],
+    [400, 190, 145, 'rgba(124,58,237,0.40)'],
+    [260,  16,  72, 'rgba(6,214,217,0.24)'],
+    [ 50, 225,  60, 'rgba(52,211,153,0.16)'],
+  ];
+  spots.forEach(([x, y, r, c]) => {
+    const g = cx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = g; cx.fillRect(0, 0, 512, 256);
+  });
+  const envTex = new THREE.CanvasTexture(ec);
+  envTex.mapping = THREE.EquirectangularReflectionMapping;
+  scene.environment = pmrem.fromEquirectangular(envTex).texture;
+  envTex.dispose(); pmrem.dispose();
+})();
+
+/* TorusKnot — frosted glass-metal material */
+const knotGeo = new THREE.TorusKnotGeometry(1.1, 0.36, 280, 56, 2, 3);
+const knotMat = new THREE.MeshPhysicalMaterial({
+  color:                      new THREE.Color(0.28, 0.46, 1.0),
+  roughness:                  0.06,
+  metalness:                  0.22,
+  transmission:               0.78,
+  thickness:                  2.5,
+  clearcoat:                  1.0,
+  clearcoatRoughness:         0.07,
+  iridescence:                0.95,
+  iridescenceIOR:             1.65,
+  iridescenceThicknessRange:  [80, 900],
+  envMapIntensity:            0.8,
+});
+const knot = new THREE.Mesh(knotGeo, knotMat);
+scene.add(knot);
+
+/* 3-point lighting */
+const keyLight  = new THREE.DirectionalLight(0x4477ff, 7);   // Blue neon key
+keyLight.position.set(4, 5, 6);
+scene.add(keyLight);
+
+const fillLight = new THREE.PointLight(0x7722cc, 95, 18, 2); // Deep purple fill
+fillLight.position.set(-5, -3, 2);
+scene.add(fillLight);
+
+const rimLight  = new THREE.DirectionalLight(0x00e5ff, 3.5); // Cyan rim
+rimLight.position.set(-4, 3, -6);
+scene.add(rimLight);
+
+scene.add(new THREE.AmbientLight(0x050810, 5));
+
+/* Particle field */
+const pPos = new Float32Array(380 * 3);
+for (let i = 0; i < 380; i++) {
+  pPos[i*3]   = (Math.random() - 0.5) * 24;
+  pPos[i*3+1] = (Math.random() - 0.5) * 24;
+  pPos[i*3+2] = (Math.random() - 0.5) * 24;
+}
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const particles = new THREE.Points(
+  pGeo,
+  new THREE.PointsMaterial({ color: 0x4488ff, size: 0.045, transparent: true, opacity: 0.38 })
+);
+scene.add(particles);
+
+/* Camera proxy object — GSAP animates these, loop reads them */
+const cam = { z: 5.5, theta: 0, phi: 0, orbitR: 0 };
+
+/* Handle resize */
+window.addEventListener('resize', () => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
+
+/* Render loop */
+let tick = 0;
+let lastFps = 60;
+const frameTimes = [];
+
+function animate() {
+  requestAnimationFrame(animate);
+  tick += 0.001;
+
+  /* FPS tracking for ticker */
+  const now = performance.now();
+  frameTimes.push(now);
+  if (frameTimes.length > 60) frameTimes.shift();
+  if (frameTimes.length > 2) {
+    lastFps = Math.round(1000 / ((frameTimes.at(-1) - frameTimes[0]) / (frameTimes.length - 1)));
+  }
+
+  /* Rotate knot */
+  knot.rotation.x += 0.004;
+  knot.rotation.y += 0.006;
+
+  /* Drift particles */
+  particles.rotation.y += 0.00025;
+
+  /* Breathing + GSAP-driven orbit */
+  camera.position.x = Math.sin(cam.theta) * cam.orbitR + Math.sin(tick * 0.48) * 0.17;
+  camera.position.y = cam.phi + Math.sin(tick * 0.31) * 0.12;
+  camera.position.z = cam.z   + Math.sin(tick * 0.27) * 0.06;
+  camera.lookAt(0, 0, 0);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+/* ════════════════════════════════════ GSAP + ScrollTrigger ══════ */
+gsap.registerPlugin(ScrollTrigger);
+
+/* Single timeline spanning all scroll — scrub: 2.5 = smooth lag */
+const camTl = gsap.timeline({
+  scrollTrigger: { trigger: 'main', start: 'top top', end: 'bottom bottom', scrub: 2.5 }
+});
+camTl
+  .to(cam, { z: 3.6,  theta: 0.62,  orbitR: 1.3,  duration: 1 })   /* Hero → Services */
+  .to(cam, { z: 3.0,  theta: 1.45,  phi: 0.28, orbitR: 2.1, duration: 1 }) /* Services → Data */
+  .to(cam, { z: 2.8,  theta: 2.05,  phi: 0.1,  orbitR: 1.7, duration: 1 }) /* Data → Work */
+  .to(cam, { z: 4.4,  theta: 0.15,  phi: 0,    orbitR: 0.4, duration: 1 }); /* Work → Contact */
+
+/* Fade-up animations — each .fu element */
+document.querySelectorAll('.fu').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity: 0, y: 32 },
+    {
+      opacity: 1, y: 0,
+      duration: 0.82,
+      ease: 'power3.out',
+      delay: (i % 4) * 0.07,
+      scrollTrigger: { trigger: el, start: 'top 89%', toggleActions: 'play none none none' }
+    }
+  );
+});
+
+/* Counter roll-up */
+document.querySelectorAll('.counter').forEach(el => {
+  const target = +el.dataset.target;
+  const suffix = el.dataset.suffix || '';
+  const obj    = { n: 0 };
+  gsap.to(obj, {
+    n: target, duration: 1.9, ease: 'power2.out',
+    scrollTrigger: { trigger: el, start: 'top 92%', once: true },
+    onUpdate() { el.textContent = Math.round(obj.n) + suffix; }
+  });
+});
+
+/* ════════════════════════════════════ TICKER BUILD ══════════════ */
+const tickerItems = [
+  { lbl: 'RENDER',   val: '—',       extra: '',       cls: 'fps-val', up: true  },
+  { lbl: 'BTC/USD',  val: '$67,432', extra: '+2.4%',  cls: '',        up: true  },
+  { lbl: 'LATENCY',  val: '<1ms',    extra: 'RT',     cls: '',        up: true  },
+  { lbl: 'NASDAQ',   val: '19,245',  extra: '+0.6%',  cls: '',        up: true  },
+  { lbl: 'EUR/USD',  val: '—',       extra: '',       cls: 'rate-EUR',up: true  },
+  { lbl: 'PROJECTS', val: '127',     extra: 'SHIPPED',cls: '',        up: true  },
+  { lbl: 'GBP/USD',  val: '—',       extra: '',       cls: 'rate-GBP',up: true  },
+  { lbl: 'UPTIME',   val: '99.9%',   extra: '',       cls: '',        up: true  },
+  { lbl: 'JPY/USD',  val: '—',       extra: '',       cls: 'rate-JPY',up: true  },
+  { lbl: 'QUEUE',    val: '3',       extra: 'SLOTS',  cls: '',        up: true  },
+  { lbl: 'MXN/USD',  val: '—',       extra: '',       cls: 'rate-MXN',up: true  },
+  { lbl: 'CLIENTS',  val: '47',      extra: 'ACTIVE', cls: '',        up: true  },
+];
+
+function buildTicker() {
+  const doubled = [...tickerItems, ...tickerItems];
+  document.getElementById('tickerTrack').innerHTML = doubled.map(d => `
+    <div class="t-item">
+      <span class="t-lbl">${d.lbl}</span>
+      <span class="t-val ${d.cls}">${d.val}</span>
+      ${d.extra ? `<span class="${d.up ? 't-up' : 't-dn'}">${d.extra}</span>` : ''}
+    </div>
+  `).join('');
+}
+buildTicker();
+
+/* Live FPS into ticker */
+setInterval(() => {
+  document.querySelectorAll('.fps-val').forEach(el => { el.textContent = lastFps + 'fps'; });
+}, 600);
+
+/* ════════════════════════════════════ API FETCH FUNCTIONS ════════ */
+
+/* Helper: tiny fetch with timeout */
+function fetchJSON(url, timeoutMs = 8000) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
+  return fetch(url, { signal: ctrl.signal })
+    .then(r => { clearTimeout(id); return r.json(); })
+    .catch(e => { clearTimeout(id); throw e; });
+}
+
+/* 1. Exchange Rates — open.er-api.com (free, no key, CORS enabled) */
+async function fetchRates() {
+  try {
+    const d = await fetchJSON('https://open.er-api.com/v6/latest/USD');
+    if (!d.rates) throw new Error('no rates');
+    const r = d.rates;
+    const pairs = [
+      { sym: 'EUR', label: '€ EUR', val: r.EUR.toFixed(4)  },
+      { sym: 'GBP', label: '£ GBP', val: r.GBP.toFixed(4)  },
+      { sym: 'JPY', label: '¥ JPY', val: r.JPY.toFixed(2)  },
+      { sym: 'MXN', label: '₱ MXN', val: r.MXN.toFixed(4)  },
+    ];
+
+    /* Widget */
+    const now = new Date();
+    document.getElementById('rateTime').textContent =
+      now.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' });
+    document.getElementById('ratesGrid').innerHTML = pairs.map(p => `
+      <div>
+        <div class="font-mono text-xs mb-0.5" style="color:rgba(255,255,255,.3)">${p.label}</div>
+        <div class="font-mono font-bold text-sm text-white">${p.val}</div>
+      </div>
+    `).join('');
+
+    /* Ticker */
+    document.querySelectorAll('.rate-EUR').forEach(el => { el.textContent = r.EUR.toFixed(4); });
+    document.querySelectorAll('.rate-GBP').forEach(el => { el.textContent = r.GBP.toFixed(4); });
+    document.querySelectorAll('.rate-JPY').forEach(el => { el.textContent = '¥' + r.JPY.toFixed(2); });
+    document.querySelectorAll('.rate-MXN').forEach(el => { el.textContent = r.MXN.toFixed(3); });
+
+  } catch {
+    document.getElementById('ratesGrid').innerHTML =
+      `<div class="col-span-2 font-mono text-xs" style="color:rgba(255,255,255,.25)">Rates unavailable</div>`;
+  }
+}
+
+/* 2. Stoic / inspirational quote — ZenQuotes (free, no key) */
+async function fetchQuote() {
+  const fallback = {
+    q: 'The impediment to action advances action. What stands in the way becomes the way.',
+    a: 'Marcus Aurelius'
+  };
+  try {
+    const d = await fetchJSON('https://zenquotes.io/api/random', 7000);
+    const q = (Array.isArray(d) && d[0]) ? d[0] : fallback;
+    document.getElementById('quoteText').textContent   = q.q;
+    document.getElementById('quoteAuthor').textContent = '— ' + q.a;
+  } catch {
+    document.getElementById('quoteText').textContent   = fallback.q;
+    document.getElementById('quoteAuthor').textContent = '— ' + fallback.a;
+  }
+}
+
+/* 3. Joke — JokeAPI (free, no key, CORS enabled) */
+async function fetchJoke() {
+  const fallback = 'Why do programmers prefer dark mode? Because light attracts bugs.';
+  try {
+    const d = await fetchJSON('https://v2.jokeapi.dev/joke/Programming,Misc?type=single&safe-mode', 6000);
+    document.getElementById('jokeText').textContent = d.joke || fallback;
+  } catch {
+    document.getElementById('jokeText').textContent = fallback;
+  }
+}
+
+/* 4. News — Currents API (requires key) or curated static */
+async function fetchNews() {
+  const staticFeed = [
+    { title: 'AI models outperform physicians in rare disease diagnosis, Stanford study finds',           date: '2025-03-01', url: '#' },
+    { title: 'FDA clears first LLM-powered clinical decision support system for psychiatric use',          date: '2025-02-28', url: '#' },
+    { title: 'Aviation Authority mandates digital aeromedical certification for all commercial pilots',    date: '2025-02-27', url: '#' },
+    { title: 'WebGL 3D visualization reduces diagnostic error by 31% in radiology pilot program',         date: '2025-02-26', url: '#' },
+    { title: 'Mental health API integrations see 200% growth among hospital EHR vendors in Q1',          date: '2025-02-25', url: '#' },
+    { title: 'Open-source psychiatry data standard published by WHO Digital Health division',             date: '2025-02-24', url: '#' },
+  ];
+
+  let articles = staticFeed;
+
+  if (CONFIG.CURRENTS_API_KEY) {
+    try {
+      const url = `https://api.currentsapi.services/v1/latest-news?apiKey=${CONFIG.CURRENTS_API_KEY}&language=en&category=technology,health`;
+      const d = await fetchJSON(url, 10000);
+      if (d.news?.length) {
+        articles = d.news.slice(0, 6).map(n => ({
+          title: n.title, date: (n.published || '').slice(0, 10), url: n.url || '#'
+        }));
+      }
+    } catch { /* use static */ }
+  } else if (CONFIG.NEWSDATA_API_KEY) {
+    try {
+      const url = `https://newsdata.io/api/1/news?apikey=${CONFIG.NEWSDATA_API_KEY}&language=en&category=technology,health`;
+      const d = await fetchJSON(url, 10000);
+      if (d.results?.length) {
+        articles = d.results.slice(0, 6).map(n => ({
+          title: n.title, date: (n.pubDate || '').slice(0, 10), url: n.link || '#'
+        }));
+      }
+    } catch { /* use static */ }
+  }
+
+  document.getElementById('newsFeed').innerHTML = articles.map(a => `
+    <a href="${a.url}" target="_blank" rel="noopener" class="news-item px-3 py-2.5 block" style="text-decoration:none">
+      <div class="text-xs font-medium leading-snug mb-1" style="color:rgba(255,255,255,.72)">${a.title}</div>
+      <div class="font-mono text-xs" style="color:rgba(255,255,255,.24)">${a.date}</div>
+    </a>
+  `).join('');
+}
+
+/* 5. Liturgical Calendar — calapi.inadiutorium.cz (free, no key) */
+async function fetchCalendar() {
+  const today = new Date();
+  const y  = today.getFullYear();
+  const mo = String(today.getMonth() + 1).padStart(2, '0');
+  const d  = String(today.getDate()).padStart(2, '0');
+  const dayLabel = today.toLocaleDateString('en', { weekday: 'long' });
+  const monLabel = today.toLocaleDateString('en', { month: 'short' });
+
+  const fallbackHtml = `
+    <div class="font-mono font-black text-2xl text-white mb-1">${d}
+      <span class="text-sm ml-1" style="color:rgba(255,255,255,.4)">${monLabel}</span>
+    </div>
+    <div class="text-xs" style="color:rgba(255,255,255,.35)">${dayLabel}</div>
+    <div class="font-mono text-xs mt-3 pt-3" style="border-top:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.22)">
+      Calendar API offline
+    </div>`;
+
+  try {
+    const data = await fetchJSON(
+      `https://calapi.inadiutorium.cz/api/v0/en/calendar/${y}/${mo}/${d}`, 6000
+    );
+    const colorMap = { green: '#34d399', purple: '#a78bfa', red: '#f87171', white: 'rgba(255,255,255,.75)' };
+    const dot   = colorMap[data.color] || colorMap.white;
+    const feast = data.celebrations?.[0]?.name || 'Feria';
+    const season = data.season || 'Ordinary Time';
+
+    document.getElementById('calWidget').innerHTML = `
+      <div class="font-mono font-black text-2xl text-white mb-1">${d}
+        <span class="text-sm ml-1" style="color:rgba(255,255,255,.4)">${monLabel}</span>
+      </div>
+      <div class="text-xs mb-3" style="color:rgba(255,255,255,.35)">${dayLabel}</div>
+      <div class="pt-3" style="border-top:1px solid rgba(255,255,255,.06)">
+        <div class="flex items-center gap-2 mb-1.5">
+          <div class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dot}"></div>
+          <div class="text-xs font-medium" style="color:rgba(255,255,255,.68)">${feast}</div>
+        </div>
+        <div class="font-mono text-xs" style="color:rgba(255,255,255,.28)">${season}</div>
+      </div>`;
+  } catch {
+    document.getElementById('calWidget').innerHTML = fallbackHtml;
+  }
+}
+
+/* 6. Aviation — static curated (Aviation API needs key & CORS proxy) */
+function renderAviationWidget() {
+  const flights = [
+    { code: 'AA2847', route: 'JFK → LAX', status: 'On Time',    color: '#34d399' },
+    { code: 'UA1103', route: 'ORD → MIA', status: 'Delayed +18m',color: '#fb923c' },
+    { code: 'DL0572', route: 'ATL → SEA', status: 'On Time',    color: '#34d399' },
+    { code: 'BA0178', route: 'LHR → JFK', status: 'En Route',   color: '#4488ff' },
+  ];
+  const note = CONFIG.AVIATION_API_KEY
+    ? ''
+    : `<div class="mt-3 font-mono text-xs" style="color:rgba(255,255,255,.2)">Configure <code style="color:rgba(251,146,60,.5)">AVIATION_API_KEY</code> for live data</div>`;
+
+  document.getElementById('avWidget').innerHTML =
+    flights.map(f => `
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-mono text-xs font-bold text-white">${f.code}</span>
+          <span class="font-mono text-xs ml-2" style="color:rgba(255,255,255,.35)">${f.route}</span>
+        </div>
+        <span class="font-mono text-xs font-semibold" style="color:${f.color}">${f.status}</span>
+      </div>`).join('') + note;
+}
+
+/* ════════════════════════════════════ INIT ALL APIs ══════════════ */
+(async () => {
+  await Promise.allSettled([
+    fetchRates(),
+    fetchQuote(),
+    fetchJoke(),
+    fetchNews(),
+    fetchCalendar(),
+  ]);
+  renderAviationWidget();
+})();
+
+/* Refresh intervals */
+setInterval(fetchRates,  5  * 60 * 1000);
+setInterval(fetchQuote,  10 * 60 * 1000);
+setInterval(fetchJoke,   15 * 60 * 1000);
+
+/* ════════════════════════════════════ NAVIGATION ════════════════ */
+const allNavLinks = document.querySelectorAll('[data-sec]');
+const sectionIds  = ['hero', 'services', 'data', 'work', 'contact'];
+
+const navObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      allNavLinks.forEach(a => a.classList.toggle('active', a.dataset.sec === e.target.id));
+    }
+  });
+}, { threshold: 0.38 });
+
+sectionIds.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) navObserver.observe(el);
+});
+
+/* Smooth scroll for anchor links */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+/* ════════════════════════════════════ CONTACT FORM ══════════════ */
+document.getElementById('cForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type="submit"]');
+  const msg = document.getElementById('formMsg');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = 'Message Sent ✓';
+    btn.style.borderColor = 'rgba(52,211,153,.45)';
+    btn.style.color = '#34d399';
+    msg.textContent = "We'll respond within 4 hours. Talk soon.";
+    msg.classList.remove('hidden');
+    this.reset();
+  }, 1200);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PETER-SOFT — Bloomberg Cyber Panel</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Three.js r155 UMD -->
+<script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --c-bg:#030508;
+  --c-surface:#070c14;
+  --c-border:rgba(68,136,255,.18);
+  --c-blue:#4488ff;
+  --c-purple:#7c3aed;
+  --c-cyan:#06d6d9;
+  --c-green:#34d399;
+  --c-red:#f87171;
+  --c-text:#e2e8f0;
+  --c-muted:#64748b;
+  --h-topbar:36px;
+  --w-sidebar:56px;
+  --radius:12px;
+  font-size:15px;
+}
+
+/* ─── RESET / BASE ────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--c-bg);color:var(--c-text);font-family:'Inter',system-ui,sans-serif}
+body{overflow-x:hidden;min-height:100vh}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--c-bg)}
+::-webkit-scrollbar-thumb{background:var(--c-blue);border-radius:4px}
+
+/* ─── CANVAS ──────────────────────────────────────────────── */
+#bg-canvas{
+  position:fixed;inset:0;
+  width:100%;height:100%;
+  z-index:0;
+  pointer-events:none;
+}
+
+/* ─── SCAN-LINE OVERLAY ───────────────────────────────────── */
+.scanlines{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(
+    0deg,
+    transparent,transparent 2px,
+    rgba(0,0,0,.18) 2px,rgba(0,0,0,.18) 4px
+  );
+}
+
+/* ─── VIGNETTE ────────────────────────────────────────────── */
+.vignette{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 55%,rgba(3,5,8,.82) 100%);
+}
+
+/* ─── TOPBAR ──────────────────────────────────────────────── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:var(--h-topbar);
+  z-index:100;
+  background:rgba(7,12,20,.82);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--c-border);
+  display:flex;align-items:center;gap:0;
+  overflow:hidden;
+}
+.topbar-brand{
+  flex-shrink:0;
+  padding:0 14px;
+  font-size:.72rem;font-weight:700;letter-spacing:.12em;
+  color:var(--c-blue);
+  border-right:1px solid var(--c-border);
+  height:100%;display:flex;align-items:center;
+  white-space:nowrap;
+}
+.topbar-clock{
+  flex-shrink:0;
+  padding:0 12px;
+  font-size:.68rem;font-family:'Courier New',monospace;
+  color:var(--c-muted);
+  border-right:1px solid var(--c-border);
+  height:100%;display:flex;align-items:center;
+  white-space:nowrap;
+}
+/* ticker */
+.ticker-wrap{
+  flex:1;overflow:hidden;height:100%;display:flex;align-items:center;
+}
+.ticker-track{
+  display:flex;align-items:center;gap:0;
+  white-space:nowrap;
+  animation:ticker-scroll 38s linear infinite;
+}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:0 22px;
+  font-size:.68rem;font-family:'Courier New',monospace;
+  color:var(--c-muted);
+  border-right:1px solid var(--c-border);
+}
+.ticker-item .sym{color:var(--c-cyan);font-weight:700;font-size:.72rem;}
+.ticker-item .val{color:var(--c-text);}
+.ticker-item .chg.up{color:var(--c-green);}
+.ticker-item .chg.dn{color:var(--c-red);}
+
+@keyframes ticker-scroll{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
+#sidebar{
+  position:fixed;
+  top:var(--h-topbar);bottom:0;left:0;
+  width:var(--w-sidebar);
+  z-index:90;
+  background:rgba(7,12,20,.72);
+  backdrop-filter:blur(14px);
+  border-right:1px solid var(--c-border);
+  display:flex;flex-direction:column;align-items:center;
+  padding:18px 0;gap:6px;
+}
+.nav-btn{
+  width:38px;height:38px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid transparent;
+  transition:all .25s;color:var(--c-muted);
+  text-decoration:none;position:relative;
+}
+.nav-btn:hover,.nav-btn.active{
+  background:rgba(68,136,255,.15);
+  border-color:var(--c-blue);
+  color:var(--c-blue);
+}
+.nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nav-tooltip{
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:rgba(7,12,20,.95);border:1px solid var(--c-border);
+  padding:4px 10px;border-radius:6px;
+  font-size:.65rem;letter-spacing:.08em;white-space:nowrap;
+  color:var(--c-cyan);opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.nav-btn:hover .nav-tooltip{opacity:1}
+
+/* ─── MAIN LAYOUT ─────────────────────────────────────────── */
+main{
+  position:relative;z-index:10;
+  margin-top:var(--h-topbar);
+  margin-left:var(--w-sidebar);
+  padding:0 32px;
+}
+
+/* ─── GLASS SYSTEM ────────────────────────────────────────── */
+.glass{
+  background:rgba(7,12,20,.52);
+  backdrop-filter:blur(18px);
+  border:1px solid var(--c-border);
+  border-radius:var(--radius);
+}
+.glass-md{
+  background:rgba(10,18,32,.68);
+  backdrop-filter:blur(24px);
+  border:1px solid rgba(68,136,255,.22);
+  border-radius:var(--radius);
+}
+.glass-strong{
+  background:rgba(12,22,40,.82);
+  backdrop-filter:blur(32px);
+  border:1px solid rgba(68,136,255,.30);
+  border-radius:calc(var(--radius) * 1.25);
+}
+
+/* ─── SECTIONS ────────────────────────────────────────────── */
+section{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  justify-content:center;
+  padding:60px 0;
+}
+
+/* ─── REVEAL ANIMATIONS ───────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(28px)}
+.fu{opacity:0;transform:translateY(20px)}
+
+/* ─── NEON TEXT ───────────────────────────────────────────── */
+.neon-blue{
+  color:var(--c-blue);
+  text-shadow:0 0 24px rgba(68,136,255,.6),0 0 48px rgba(68,136,255,.3);
+}
+.neon-cyan{
+  color:var(--c-cyan);
+  text-shadow:0 0 20px rgba(6,214,217,.5),0 0 40px rgba(6,214,217,.25);
+}
+.neon-purple{
+  color:#a78bfa;
+  text-shadow:0 0 20px rgba(124,58,237,.55),0 0 40px rgba(124,58,237,.28);
+}
+
+/* gradient text */
+.grad-text{
+  background:linear-gradient(135deg,var(--c-blue) 0%,var(--c-cyan) 55%,var(--c-purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+
+/* ─── HERO SECTION ────────────────────────────────────────── */
+#hero{gap:0}
+.hero-label{
+  font-size:.68rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--c-cyan);margin-bottom:18px;
+  display:flex;align-items:center;gap:8px;
+}
+.hero-label::before{
+  content:'';display:block;width:28px;height:1px;background:var(--c-cyan);
+  box-shadow:0 0 8px var(--c-cyan);
+}
+.hero-h1{
+  font-size:clamp(2.8rem,6vw,5.5rem);
+  font-weight:800;line-height:1.05;
+  letter-spacing:-.03em;
+  margin-bottom:28px;
+}
+.hero-sub{
+  font-size:clamp(1rem,1.8vw,1.18rem);
+  color:var(--c-muted);line-height:1.7;
+  max-width:540px;margin-bottom:44px;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:13px 30px;
+  border-radius:9px;border:1px solid var(--c-blue);
+  background:rgba(68,136,255,.12);
+  color:var(--c-blue);font-size:.88rem;font-weight:600;letter-spacing:.06em;
+  cursor:pointer;text-decoration:none;
+  transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(68,136,255,.18),transparent);
+  opacity:0;transition:opacity .25s;
+}
+.btn-primary:hover{
+  background:rgba(68,136,255,.22);
+  box-shadow:0 0 28px rgba(68,136,255,.35);
+}
+.btn-primary:hover::after{opacity:1}
+.btn-outline{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:13px 30px;
+  border-radius:9px;border:1px solid var(--c-border);
+  background:transparent;
+  color:var(--c-text);font-size:.88rem;font-weight:500;letter-spacing:.04em;
+  cursor:pointer;text-decoration:none;
+  transition:all .25s;
+}
+.btn-outline:hover{border-color:var(--c-cyan);color:var(--c-cyan)}
+
+/* status badge */
+.status-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:5px 12px;border-radius:20px;
+  border:1px solid rgba(52,211,153,.28);
+  background:rgba(52,211,153,.08);
+  font-size:.65rem;letter-spacing:.1em;color:var(--c-green);
+  margin-bottom:28px;
+}
+.status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--c-green);
+  box-shadow:0 0 8px var(--c-green);
+  animation:pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* stat row */
+.stat-row{display:flex;gap:24px;flex-wrap:wrap;margin-top:48px}
+.stat-card{
+  padding:18px 22px;min-width:130px;
+  border-top:2px solid var(--c-blue);
+}
+.stat-num{font-size:2rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.stat-lbl{font-size:.65rem;letter-spacing:.12em;color:var(--c-muted);margin-top:6px;text-transform:uppercase}
+
+/* ─── SERVICES SECTION ────────────────────────────────────── */
+.section-tag{
+  font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--c-blue);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.section-tag::before{content:'[';opacity:.5}
+.section-tag::after{content:']';opacity:.5}
+.section-h2{
+  font-size:clamp(2rem,4vw,3.2rem);
+  font-weight:800;letter-spacing:-.03em;
+  line-height:1.1;margin-bottom:16px;
+}
+.section-lead{
+  font-size:1rem;color:var(--c-muted);line-height:1.7;
+  max-width:520px;margin-bottom:52px;
+}
+
+.services-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
+}
+.svc-card{
+  padding:26px;cursor:default;
+  transition:border-color .25s,transform .25s,box-shadow .25s;
+}
+.svc-card:hover{
+  border-color:rgba(68,136,255,.5);
+  transform:translateY(-4px);
+  box-shadow:0 18px 44px rgba(68,136,255,.1);
+}
+.svc-icon{
+  width:42px;height:42px;border-radius:10px;
+  background:rgba(68,136,255,.12);border:1px solid rgba(68,136,255,.25);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:16px;
+}
+.svc-icon svg{width:20px;height:20px;stroke:var(--c-blue);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.svc-title{font-size:.92rem;font-weight:700;margin-bottom:8px;letter-spacing:.02em}
+.svc-desc{font-size:.8rem;color:var(--c-muted);line-height:1.65}
+.svc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.svc-tag{
+  font-size:.6rem;padding:3px 8px;border-radius:4px;
+  border:1px solid var(--c-border);color:var(--c-muted);letter-spacing:.06em;
+}
+
+/* ─── WORK / LABS ─────────────────────────────────────────── */
+.work-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:24px;
+}
+.work-card{
+  overflow:hidden;transition:all .3s;cursor:pointer;
+}
+.work-card:hover{border-color:rgba(6,214,217,.4);transform:translateY(-5px);box-shadow:0 22px 50px rgba(6,214,217,.08)}
+.work-thumb{
+  height:170px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.5rem;
+  border-bottom:1px solid var(--c-border);
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(7,12,20,1) 0%,rgba(15,25,48,.8) 100%);
+}
+.work-thumb-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 70%,rgba(68,136,255,.15) 0%,transparent 70%);
+  pointer-events:none;
+}
+.work-body{padding:20px}
+.work-kicker{font-size:.6rem;letter-spacing:.14em;color:var(--c-cyan);text-transform:uppercase;margin-bottom:8px}
+.work-title{font-size:1rem;font-weight:700;margin-bottom:8px}
+.work-desc{font-size:.8rem;color:var(--c-muted);line-height:1.6}
+.work-stack{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.work-badge{
+  font-size:.6rem;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--c-border);color:var(--c-muted);letter-spacing:.05em;
+}
+
+/* ─── CONTACT SECTION ─────────────────────────────────────── */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+@media(max-width:768px){.contact-grid{grid-template-columns:1fr}}
+
+.contact-info-item{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 0;border-bottom:1px solid var(--c-border);
+}
+.contact-info-icon{
+  width:36px;height:36px;flex-shrink:0;border-radius:8px;
+  background:rgba(68,136,255,.10);border:1px solid var(--c-border);
+  display:flex;align-items:center;justify-content:center;
+}
+.contact-info-icon svg{width:16px;height:16px;stroke:var(--c-blue);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.contact-info-lbl{font-size:.6rem;letter-spacing:.1em;color:var(--c-muted);text-transform:uppercase;margin-bottom:3px}
+.contact-info-val{font-size:.85rem;color:var(--c-text)}
+
+/* form */
+.form-group{margin-bottom:18px}
+.form-label{display:block;font-size:.68rem;letter-spacing:.1em;color:var(--c-muted);margin-bottom:7px;text-transform:uppercase}
+.form-input,.form-textarea,.form-select{
+  width:100%;padding:11px 14px;
+  background:rgba(7,12,20,.7);
+  border:1px solid var(--c-border);border-radius:8px;
+  color:var(--c-text);font-size:.85rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+  font-family:inherit;
+  resize:none;
+}
+.form-input:focus,.form-textarea:focus,.form-select:focus{
+  border-color:var(--c-blue);
+  box-shadow:0 0 0 3px rgba(68,136,255,.12);
+}
+.form-select option{background:#070c14}
+.form-textarea{height:110px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+
+.btn-submit{
+  width:100%;padding:13px;
+  border-radius:9px;border:1px solid var(--c-blue);
+  background:linear-gradient(135deg,rgba(68,136,255,.22),rgba(124,58,237,.15));
+  color:var(--c-blue);font-size:.88rem;font-weight:700;letter-spacing:.08em;
+  cursor:pointer;transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.btn-submit:hover{
+  background:linear-gradient(135deg,rgba(68,136,255,.35),rgba(124,58,237,.25));
+  box-shadow:0 0 32px rgba(68,136,255,.3);
+}
+#form-msg{
+  padding:10px 14px;border-radius:8px;font-size:.8rem;
+  margin-top:12px;display:none;
+}
+#form-msg.ok{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);color:var(--c-green)}
+#form-msg.err{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--c-red)}
+
+/* ─── LIVE METRICS STRIP ──────────────────────────────────── */
+.metrics-strip{
+  display:flex;gap:14px;flex-wrap:wrap;
+  margin-top:28px;
+}
+.metric-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:20px;
+  background:rgba(7,12,20,.6);border:1px solid var(--c-border);
+  font-size:.7rem;font-family:'Courier New',monospace;
+  transition:border-color .2s;
+}
+.metric-pill:hover{border-color:var(--c-cyan)}
+.metric-pill .mk{color:var(--c-muted);margin-right:2px}
+.metric-pill .mv{color:var(--c-cyan);font-weight:700}
+.metric-pill .mchg.up{color:var(--c-green);margin-left:4px}
+.metric-pill .mchg.dn{color:var(--c-red);margin-left:4px}
+
+/* ─── FOOTER ──────────────────────────────────────────────── */
+footer{
+  position:relative;z-index:10;
+  margin-left:var(--w-sidebar);
+  padding:28px 32px;
+  border-top:1px solid var(--c-border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:14px;
+  font-size:.68rem;color:var(--c-muted);letter-spacing:.06em;
+}
+footer a{color:var(--c-muted);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--c-blue)}
+
+/* ─── MOBILE NAV TOGGLE ───────────────────────────────────── */
+.mob-nav-toggle{
+  display:none;position:fixed;bottom:24px;right:24px;z-index:200;
+  width:48px;height:48px;border-radius:50%;
+  background:rgba(68,136,255,.18);border:1px solid var(--c-blue);
+  align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 0 20px rgba(68,136,255,.25);
+}
+.mob-nav-toggle svg{width:22px;height:22px;stroke:var(--c-blue);fill:none;stroke-width:2;stroke-linecap:round}
+.mob-nav{
+  display:none;
+  position:fixed;bottom:86px;right:24px;z-index:200;
+  flex-direction:column;gap:8px;
+}
+.mob-nav a{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 16px;border-radius:8px;
+  background:rgba(7,12,20,.92);border:1px solid var(--c-border);
+  color:var(--c-text);font-size:.8rem;text-decoration:none;
+  backdrop-filter:blur(12px);
+  transition:border-color .2s,color .2s;
+}
+.mob-nav a:hover{border-color:var(--c-blue);color:var(--c-blue)}
+@media(max-width:768px){
+  #sidebar{display:none}
+  main{margin-left:0;padding:0 20px}
+  footer{margin-left:0}
+  .mob-nav-toggle{display:flex}
+  .contact-grid{grid-template-columns:1fr}
+}
+
+/* ─── DIVIDER LINE ────────────────────────────────────────── */
+.div-line{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--c-blue),transparent);
+  margin:0;opacity:.3;
+}
+
+/* ─── CORNER DECORATION ───────────────────────────────────── */
+.corner-deco{
+  position:absolute;width:40px;height:40px;opacity:.4;
+}
+.corner-deco.tl{top:-1px;left:-1px;border-top:2px solid var(--c-cyan);border-left:2px solid var(--c-cyan)}
+.corner-deco.tr{top:-1px;right:-1px;border-top:2px solid var(--c-cyan);border-right:2px solid var(--c-cyan)}
+.corner-deco.bl{bottom:-1px;left:-1px;border-bottom:2px solid var(--c-cyan);border-left:2px solid var(--c-cyan)}
+.corner-deco.br{bottom:-1px;right:-1px;border-bottom:2px solid var(--c-cyan);border-right:2px solid var(--c-cyan)}
+</style>
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════ CANVAS -->
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- ══════════════════════════════════════════════ TOPBAR -->
+<div id="topbar">
+  <div class="topbar-brand">PETER&#8209;SOFT&nbsp;///&nbsp;SYSTEMS</div>
+  <div class="topbar-clock" id="clock">--:--:-- UTC</div>
+  <div class="ticker-wrap">
+    <div class="ticker-track" id="tickerTrack">
+      <!-- filled by JS, duplicated for loop -->
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ SIDEBAR -->
+<nav id="sidebar" aria-label="Main navigation">
+  <a href="#hero" class="nav-btn active" data-section="hero">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nav-tooltip">INICIO</span>
+  </a>
+  <a href="#services" class="nav-btn" data-section="services">
+    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <span class="nav-tooltip">SERVICIOS</span>
+  </a>
+  <a href="#work" class="nav-btn" data-section="work">
+    <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+    <span class="nav-tooltip">LABORATORIO</span>
+  </a>
+  <a href="#contact" class="nav-btn" data-section="contact">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span class="nav-tooltip">CONTACTO</span>
+  </a>
+  <div style="flex:1"></div>
+  <div class="nav-btn" id="sidebarStatus" title="Sistema activo">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <span class="nav-tooltip">ESTADO: OK</span>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════ MAIN -->
+<main>
+
+  <!-- ─── HERO ───────────────────────────────────────────── -->
+  <section id="hero">
+    <div class="status-badge reveal">
+      <span class="status-dot"></span>
+      SISTEMA OPERATIVO · v4.2.0 · 2026
+    </div>
+    <div class="hero-label reveal">PETER-SOFT // SOLUCIONES TECNOLÓGICAS AVANZADAS</div>
+    <h1 class="hero-h1 reveal">
+      <span class="grad-text">Ingeniería</span><br>
+      que Transforma<br>
+      <span class="neon-cyan">el Futuro</span>
+    </h1>
+    <p class="hero-sub reveal">
+      Desarrollamos software de misión crítica para aviación, salud mental y telecomunicaciones.
+      Arquitecturas escalables, interfaces de precisión, resultados medibles.
+    </p>
+    <div class="flex gap-4 flex-wrap reveal">
+      <a href="#services" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Ver Servicios
+      </a>
+      <a href="#contact" class="btn-outline">Iniciar Proyecto →</a>
+    </div>
+
+    <!-- live metrics strip -->
+    <div class="metrics-strip">
+      <div class="metric-pill"><span class="mk">SYS/</span><span class="mv" id="mCpu">--</span><span class="mchg up" id="mCpuT">LOAD</span></div>
+      <div class="metric-pill"><span class="mk">NET/</span><span class="mv" id="mNet">ONLINE</span></div>
+      <div class="metric-pill"><span class="mk">API/</span><span class="mv" id="mApi">--</span></div>
+      <div class="metric-pill"><span class="mk">BUILD/</span><span class="mv neon-green" id="mBuild">STABLE</span></div>
+      <div class="metric-pill"><span class="mk">LATENCY/</span><span class="mv" id="mLat">--ms</span></div>
+    </div>
+
+    <!-- stat cards -->
+    <div class="stat-row">
+      <div class="stat-card glass reveal">
+        <div class="stat-num neon-blue">12+</div>
+        <div class="stat-lbl">Años en operación</div>
+      </div>
+      <div class="stat-card glass reveal">
+        <div class="stat-num neon-cyan">98%</div>
+        <div class="stat-lbl">Uptime garantizado</div>
+      </div>
+      <div class="stat-card glass reveal">
+        <div class="stat-num neon-purple">340+</div>
+        <div class="stat-lbl">Proyectos entregados</div>
+      </div>
+      <div class="stat-card glass reveal">
+        <div class="stat-num" style="color:var(--c-green);text-shadow:0 0 20px rgba(52,211,153,.5)">ISO</div>
+        <div class="stat-lbl">Certificación vigente</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="div-line"></div>
+
+  <!-- ─── SERVICES ──────────────────────────────────────── -->
+  <section id="services">
+    <div class="section-tag fu">SERVICIOS</div>
+    <h2 class="section-h2 fu">Stack de <span class="grad-text">Alto Rendimiento</span></h2>
+    <p class="section-lead fu">
+      Soluciones end-to-end diseñadas para entornos regulados, alta disponibilidad
+      y equipos que no pueden permitirse el error.
+    </p>
+    <div class="services-grid">
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <div class="svc-title">Arquitectura Cloud-Native</div>
+        <div class="svc-desc">Diseño de microservicios, contenedores y pipelines CI/CD para escalar sin fricción en cualquier nube.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">Kubernetes</span><span class="svc-tag">Terraform</span><span class="svc-tag">AWS</span><span class="svc-tag">GCP</span>
+        </div>
+      </div>
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon" style="background:rgba(6,214,217,.10);border-color:rgba(6,214,217,.25)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--c-cyan)"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        </div>
+        <div class="svc-title">Sistemas de Telemedicina</div>
+        <div class="svc-desc">Plataformas HIPAA-compliant para consulta remota, monitoreo de pacientes y telepsiquiatría de alta precisión.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">HL7 FHIR</span><span class="svc-tag">HIPAA</span><span class="svc-tag">WebRTC</span>
+        </div>
+      </div>
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon" style="background:rgba(124,58,237,.10);border-color:rgba(124,58,237,.25)">
+          <svg viewBox="0 0 24 24" style="stroke:#a78bfa"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="svc-title">Aviación & Safety Systems</div>
+        <div class="svc-desc">Software certificable DO-178C para cabina de vuelo, medicina aeronáutica y sistemas de gestión de fatiga de tripulación.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">DO-178C</span><span class="svc-tag">ARINC 429</span><span class="svc-tag">MIL-STD</span>
+        </div>
+      </div>
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon" style="background:rgba(52,211,153,.10);border-color:rgba(52,211,153,.25)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--c-green)"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+        </div>
+        <div class="svc-title">Psiquiatría Digital</div>
+        <div class="svc-desc">Apps de salud mental con IA clínica, evaluaciones DSM-5 automatizadas, monitoreo biométrico y trazabilidad completa.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">DSM-5</span><span class="svc-tag">NLP</span><span class="svc-tag">GDPR</span>
+        </div>
+      </div>
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="svc-title">Analytics & BI en Tiempo Real</div>
+        <div class="svc-desc">Pipelines de datos clínicos y operacionales. Dashboards Bloomberg-grade con alertas predictivas y ML embebido.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">Apache Kafka</span><span class="svc-tag">ClickHouse</span><span class="svc-tag">Grafana</span>
+        </div>
+      </div>
+
+      <div class="svc-card glass fu">
+        <div class="svc-icon" style="background:rgba(248,113,113,.10);border-color:rgba(248,113,113,.25)">
+          <svg viewBox="0 0 24 24" style="stroke:var(--c-red)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        </div>
+        <div class="svc-title">Ciberseguridad Regulada</div>
+        <div class="svc-desc">Auditorías de penetración, hardening de infraestructura crítica y cumplimiento NIS2/ISO 27001 para sectores regulados.</div>
+        <div class="svc-tags">
+          <span class="svc-tag">ISO 27001</span><span class="svc-tag">NIS2</span><span class="svc-tag">SOC 2</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="div-line"></div>
+
+  <!-- ─── WORK / LABS ────────────────────────────────────── -->
+  <section id="work">
+    <div class="section-tag fu">LABORATORIO</div>
+    <h2 class="section-h2 fu">Proyectos <span class="grad-text">en Producción</span></h2>
+    <p class="section-lead fu">
+      Casos reales. Sistemas en vuelo, en clínica, en sala de control.
+    </p>
+    <div class="work-grid">
+
+      <div class="work-card glass-md fu">
+        <div class="work-thumb">
+          <div class="work-thumb-glow" style="background:radial-gradient(circle at 50% 80%,rgba(6,214,217,.2) 0%,transparent 65%)"></div>
+          ✈️
+        </div>
+        <div class="work-body">
+          <div class="work-kicker">Aviación · Safety Critical</div>
+          <div class="work-title">AEROMIND — Fatigue Risk Management</div>
+          <div class="work-desc">Sistema de gestión de fatiga de tripulación certificado OACI. Integración con schedules, biometría y alertas en tiempo real.</div>
+          <div class="work-stack">
+            <span class="work-badge">C++17</span><span class="work-badge">ARINC 653</span><span class="work-badge">DO-178C</span><span class="work-badge">React</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-card glass-md fu">
+        <div class="work-thumb">
+          <div class="work-thumb-glow" style="background:radial-gradient(circle at 50% 80%,rgba(124,58,237,.2) 0%,transparent 65%)"></div>
+          🧠
+        </div>
+        <div class="work-body">
+          <div class="work-kicker">Psiquiatría · IA Clínica</div>
+          <div class="work-title">PSYLINK — Telepsiquiatría Adaptativa</div>
+          <div class="work-desc">Plataforma de evaluación y seguimiento psiquiátrico con NLP multilingüe, scoring PHQ-9/GAD-7 automatizado y expediente clínico digital.</div>
+          <div class="work-stack">
+            <span class="work-badge">Python</span><span class="work-badge">FastAPI</span><span class="work-badge">LLM</span><span class="work-badge">FHIR R4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-card glass-md fu">
+        <div class="work-thumb">
+          <div class="work-thumb-glow" style="background:radial-gradient(circle at 50% 80%,rgba(68,136,255,.2) 0%,transparent 65%)"></div>
+          📡
+        </div>
+        <div class="work-body">
+          <div class="work-kicker">Telecomunicaciones · Edge</div>
+          <div class="work-title">NEXUSCTL — Control de Red Distribuida</div>
+          <div class="work-desc">Orquestador de red de baja latencia para operadores de telecomunicaciones. Monitoreo de 50,000+ nodos con anomaly detection en tiempo real.</div>
+          <div class="work-stack">
+            <span class="work-badge">Go</span><span class="work-badge">gRPC</span><span class="work-badge">eBPF</span><span class="work-badge">TimescaleDB</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-card glass-md fu">
+        <div class="work-thumb">
+          <div class="work-thumb-glow" style="background:radial-gradient(circle at 50% 80%,rgba(52,211,153,.18) 0%,transparent 65%)"></div>
+          💊
+        </div>
+        <div class="work-body">
+          <div class="work-kicker">Medicina · IoT Clínico</div>
+          <div class="work-title">MEDTRACK — Adherencia Farmacológica</div>
+          <div class="work-desc">Sistema IoT para monitoreo de adherencia a tratamientos crónicos. Dispensador inteligente + app + panel clínico + alertas tempranas.</div>
+          <div class="work-stack">
+            <span class="work-badge">Rust</span><span class="work-badge">MQTT</span><span class="work-badge">Flutter</span><span class="work-badge">HL7</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-card glass-md fu">
+        <div class="work-thumb">
+          <div class="work-thumb-glow" style="background:radial-gradient(circle at 50% 80%,rgba(248,113,113,.15) 0%,transparent 65%)"></div>
+          🛡️
+        </div>
+        <div class="work-body">
+          <div class="work-kicker">Seguridad · OT/ICS</div>
+          <div class="work-title">SENTINEL-OT — Protección de Infraestructura</div>
+          <div class="work-desc">Plataforma de detección de intrusos para redes industriales OT. Análisis pasivo de Modbus/DNP3 con motor de reglas Sigma.</div>
+          <div class="work-stack">
+            <span class="work-badge">Zeek</span><span class="work-badge">Suricata</span><span class="work-badge">ICS</span><span class="work-badge">SIEM</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="work-card glass-md fu" style="border:1px dashed rgba(68,136,255,.2);display:flex;align-items:center;justify-content:center;min-height:280px;cursor:default">
+        <div style="text-align:center;padding:32px">
+          <div style="font-size:2rem;margin-bottom:14px;opacity:.4">+</div>
+          <div style="font-size:.8rem;color:var(--c-muted);letter-spacing:.08em">PRÓXIMO PROYECTO</div>
+          <div style="font-size:.72rem;color:var(--c-blue);margin-top:8px">¿El tuyo?</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="div-line"></div>
+
+  <!-- ─── CONTACT ────────────────────────────────────────── -->
+  <section id="contact">
+    <div class="section-tag fu">CONTACTO</div>
+    <h2 class="section-h2 fu">Inicia tu <span class="grad-text">Proyecto</span></h2>
+    <p class="section-lead fu">
+      Respuesta en menos de 24 horas. Sin pitch, sin presupuestos genéricos —
+      solo conversación técnica directa.
+    </p>
+    <div class="contact-grid">
+      <!-- info -->
+      <div class="fu">
+        <div class="glass-md" style="padding:28px;position:relative">
+          <div class="corner-deco tl"></div><div class="corner-deco br"></div>
+          <div style="font-size:.72rem;letter-spacing:.14em;color:var(--c-cyan);margin-bottom:20px;text-transform:uppercase">Información de contacto</div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+            <div><div class="contact-info-lbl">Email</div><div class="contact-info-val">contacto@peter-soft.com</div></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.77 11a19.79 19.79 0 01-3.07-8.67A2 2 0 013.68 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 7.91a16 16 0 006.29 6.29l1.27-.96a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+            <div><div class="contact-info-lbl">Teléfono / WhatsApp</div><div class="contact-info-val">+56 9 0000 0000</div></div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+            <div><div class="contact-info-lbl">Ubicación</div><div class="contact-info-val">Santiago, Chile · Remoto Global</div></div>
+          </div>
+          <div class="contact-info-item" style="border:0">
+            <div class="contact-info-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div><div class="contact-info-lbl">Horario</div><div class="contact-info-val">Lun–Vie · 09:00–19:00 CLT</div></div>
+          </div>
+          <!-- availability indicator -->
+          <div style="margin-top:20px;padding:14px 16px;border-radius:8px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2)">
+            <div style="display:flex;align-items:center;gap:8px;font-size:.72rem;color:var(--c-green)">
+              <span class="status-dot"></span>
+              Disponible para nuevos proyectos — Q2 2026
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- form -->
+      <div class="fu">
+        <div class="glass-strong" style="padding:30px;position:relative">
+          <div class="corner-deco tl"></div><div class="corner-deco tr"></div>
+          <div style="font-size:.72rem;letter-spacing:.14em;color:var(--c-cyan);margin-bottom:22px;text-transform:uppercase">Formulario de Contacto</div>
+          <form id="contactForm" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre *</label>
+                <input type="text" id="fName" class="form-input" placeholder="Pedro Martínez" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input type="email" id="fEmail" class="form-input" placeholder="pedro@empresa.com" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Área de Interés</label>
+              <select id="fArea" class="form-select form-input">
+                <option value="">Seleccionar...</option>
+                <option>Aviación & Safety Systems</option>
+                <option>Telemedicina / HL7 FHIR</option>
+                <option>Psiquiatría Digital</option>
+                <option>Cloud-Native / Microservicios</option>
+                <option>Ciberseguridad Regulada</option>
+                <option>Analytics & BI</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mensaje *</label>
+              <textarea id="fMsg" class="form-textarea" placeholder="Describe brevemente tu proyecto o necesidad..." required></textarea>
+            </div>
+            <button type="submit" class="btn-submit" id="submitBtn">
+              <span id="submitLabel">ENVIAR MENSAJE →</span>
+            </button>
+            <div id="form-msg"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════ FOOTER -->
+<footer>
+  <div>© 2026 PETER-SOFT SYSTEMS &nbsp;·&nbsp; Todos los derechos reservados</div>
+  <div style="display:flex;gap:20px">
+    <a href="#">Política de Privacidad</a>
+    <a href="#">Términos de Servicio</a>
+    <a href="#">ISO 27001</a>
+  </div>
+  <div style="font-family:'Courier New',monospace;color:var(--c-blue);font-size:.65rem">
+    BUILD_ID::<span id="buildId">--</span>
+  </div>
+</footer>
+
+<!-- ══════════════════════════════════════════════ MOBILE NAV -->
+<div class="mob-nav-toggle" id="mobToggle">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</div>
+<div class="mob-nav" id="mobNav">
+  <a href="#hero">⌂ Inicio</a>
+  <a href="#services">▤ Servicios</a>
+  <a href="#work">◈ Laboratorio</a>
+  <a href="#contact">✉ Contacto</a>
+</div>
+
+<!-- ══════════════════════════════════════════════ SCRIPTS -->
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+/* ─── THREE.JS SCENE ──────────────────────────────────────── */
+(function initScene(){
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.shadowMap.enabled = false;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 5.8);
+
+  /* ── Procedural env map ── */
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const envCanvas = document.createElement('canvas');
+  envCanvas.width = 512; envCanvas.height = 256;
+  const ectx = envCanvas.getContext('2d');
+  ectx.fillStyle='#030508'; ectx.fillRect(0,0,512,256);
+  const g1 = ectx.createRadialGradient(128,80,0,128,80,140);
+  g1.addColorStop(0,'rgba(68,136,255,.55)'); g1.addColorStop(1,'transparent');
+  ectx.fillStyle=g1; ectx.fillRect(0,0,512,256);
+  const g2 = ectx.createRadialGradient(380,160,0,380,160,110);
+  g2.addColorStop(0,'rgba(124,58,237,.45)'); g2.addColorStop(1,'transparent');
+  ectx.fillStyle=g2; ectx.fillRect(0,0,512,256);
+  const g3 = ectx.createRadialGradient(256,240,0,256,240,90);
+  g3.addColorStop(0,'rgba(6,214,217,.38)'); g3.addColorStop(1,'transparent');
+  ectx.fillStyle=g3; ectx.fillRect(0,0,512,256);
+  const envTex = new THREE.CanvasTexture(envCanvas,THREE.EquirectangularReflectionMapping);
+  const envMap = pmrem.fromEquirectangular(envTex).texture;
+  scene.environment = envMap;
+  envTex.dispose(); pmrem.dispose();
+
+  /* ── Lights ── */
+  scene.add(new THREE.AmbientLight(0x0a0f1f, 1.2));
+  const keyL = new THREE.DirectionalLight(0x4477ff, 8);
+  keyL.position.set(3,4,3); scene.add(keyL);
+  const fillL = new THREE.PointLight(0x7c22dd, 110, 20, 2);
+  fillL.position.set(-3,0,1); scene.add(fillL);
+  const rimL = new THREE.DirectionalLight(0x00e5ff, 4);
+  rimL.position.set(-2,1,-3); scene.add(rimL);
+
+  /* ── TorusKnot — frosted glass ── */
+  const knotGeo = new THREE.TorusKnotGeometry(1.0, 0.34, 160, 24, 2, 3);
+  const knotMat = new THREE.MeshPhysicalMaterial({
+    roughness: 0.70,           // HIGH → frosted / esmerilado
+    transmission: 0.88,        // HIGH → glass transparency
+    metalness: 0.30,
+    iridescence: 0.55,
+    iridescenceIOR: 1.55,
+    iridescenceThicknessRange: [100, 700],
+    clearcoat: 0.85,
+    clearcoatRoughness: 0.25,
+    thickness: 3.0,
+    envMapIntensity: 0.65,
+    color: new THREE.Color(0x88aaff),
+    attenuationColor: new THREE.Color(0x4466dd),
+    attenuationDistance: 3.5,
+  });
+  const knot = new THREE.Mesh(knotGeo, knotMat);
+  scene.add(knot);
+
+  /* ── Particle field ── */
+  const pCount = 900;
+  const pPos = new Float32Array(pCount*3);
+  for(let i=0;i<pCount*3;i++) pPos[i]=(Math.random()-0.5)*22;
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  const pMat = new THREE.PointsMaterial({size:.025,color:0x4488ff,transparent:true,opacity:.55,sizeAttenuation:true});
+  const particles = new THREE.Points(pGeo,pMat);
+  scene.add(particles);
+
+  /* ── Grid plane ── */
+  const gridHelper = new THREE.GridHelper(30,36,0x1a2a44,0x0d1a2d);
+  gridHelper.position.y = -2.4;
+  scene.add(gridHelper);
+
+  /* ── Camera proxy for GSAP ── */
+  const cam = { z:5.8, theta:0, phi:0, orbitR:0 };
+
+  /* ── GSAP ScrollTrigger camera timeline ── */
+  const camTl = gsap.timeline({
+    scrollTrigger:{
+      trigger:'main',
+      start:'top top',
+      end:'bottom bottom',
+      scrub:2.5,
+    }
+  });
+  camTl
+    .to(cam,{ z:3.8, theta:0.6,  orbitR:1.2, duration:1 })
+    .to(cam,{ z:3.1, theta:1.4,  phi:.28, orbitR:2.0, duration:1 })
+    .to(cam,{ z:2.9, theta:2.05, phi:.1,  orbitR:1.7, duration:1 })
+    .to(cam,{ z:4.5, theta:0.15, phi:0,   orbitR:0.4, duration:1 });
+
+  /* ── Render loop ── */
+  let tick = 0;
+  function animate(){
+    requestAnimationFrame(animate);
+    tick += 0.008;
+    knot.rotation.x = tick * 0.34;
+    knot.rotation.y = tick * 0.52;
+    particles.rotation.y = tick * 0.04;
+
+    camera.position.x = Math.sin(cam.theta) * cam.orbitR + Math.sin(tick*.48)*.17;
+    camera.position.y = cam.phi + Math.sin(tick*.31)*.12;
+    camera.position.z = cam.z + Math.sin(tick*.27)*.06;
+    camera.lookAt(0,0,0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  /* ── Resize ── */
+  window.addEventListener('resize',()=>{
+    renderer.setSize(innerWidth,innerHeight);
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ─── CLOCK ───────────────────────────────────────────────── */
+function updateClock(){
+  const now = new Date();
+  const h=String(now.getUTCHours()).padStart(2,'0');
+  const m=String(now.getUTCMinutes()).padStart(2,'0');
+  const s=String(now.getUTCSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s} UTC`;
+}
+updateClock(); setInterval(updateClock,1000);
+
+/* ─── BUILD ID ────────────────────────────────────────────── */
+document.getElementById('buildId').textContent =
+  Math.random().toString(36).slice(2,9).toUpperCase();
+
+/* ─── TICKER ──────────────────────────────────────────────── */
+const TICKER_ITEMS = [
+  { sym:'BTC/USD', val:'67,420.00', chg:'+2.34%', up:true },
+  { sym:'ETH/USD', val:'3,512.80',  chg:'+1.18%', up:true },
+  { sym:'USD/CLP', val:'942.50',    chg:'-0.22%', up:false },
+  { sym:'EUR/USD', val:'1.0821',    chg:'+0.08%', up:true  },
+  { sym:'NVDA',    val:'892.40',    chg:'+3.55%', up:true  },
+  { sym:'AAPL',    val:'218.30',    chg:'-0.41%', up:false },
+  { sym:'SYS/LOAD',val:'0.38',      chg:'OK',     up:true  },
+  { sym:'NET/LAT', val:'12ms',      chg:'LOW',    up:true  },
+  { sym:'CPU/USE', val:'24%',       chg:'NOM',    up:true  },
+];
+function buildTicker(){
+  const track = document.getElementById('tickerTrack');
+  let html = '';
+  const doubled = [...TICKER_ITEMS,...TICKER_ITEMS];
+  doubled.forEach(item=>{
+    html += `<span class="ticker-item">
+      <span class="sym">${item.sym}</span>
+      <span class="val">${item.val}</span>
+      <span class="chg ${item.up?'up':'dn'}">${item.chg}</span>
+    </span>`;
+  });
+  track.innerHTML = html;
+}
+buildTicker();
+
+/* ─── LIVE METRICS (simulated) ────────────────────────────── */
+function updateMetrics(){
+  const cpu = (15 + Math.random()*35).toFixed(1)+'%';
+  const lat = (8 + Math.random()*18).toFixed(0)+'ms';
+  const apis = Math.random()>.15 ? 'OK' : 'DEGRADED';
+  document.getElementById('mCpu').textContent = cpu;
+  document.getElementById('mLat').textContent = lat;
+  document.getElementById('mApi').textContent = apis;
+  document.getElementById('mApi').style.color = apis==='OK' ? 'var(--c-cyan)' : 'var(--c-red)';
+}
+updateMetrics(); setInterval(updateMetrics, 3200);
+
+/* ─── SIDEBAR ACTIVE STATE ────────────────────────────────── */
+const sections = document.querySelectorAll('section[id]');
+const navBtns = document.querySelectorAll('.nav-btn[data-section]');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      navBtns.forEach(btn=>btn.classList.remove('active'));
+      const active = document.querySelector(`.nav-btn[data-section="${e.target.id}"]`);
+      if(active) active.classList.add('active');
+    }
+  });
+},{ threshold:0.38 });
+sections.forEach(s=>observer.observe(s));
+
+/* ─── MOBILE NAV ──────────────────────────────────────────── */
+const mobToggle = document.getElementById('mobToggle');
+const mobNav = document.getElementById('mobNav');
+let mobOpen = false;
+mobToggle.addEventListener('click',()=>{
+  mobOpen = !mobOpen;
+  mobNav.style.display = mobOpen ? 'flex' : 'none';
+});
+mobNav.querySelectorAll('a').forEach(a=>{
+  a.addEventListener('click',()=>{ mobOpen=false; mobNav.style.display='none'; });
+});
+
+/* ─── GSAP REVEALS ────────────────────────────────────────── */
+gsap.utils.toArray('.reveal').forEach(el=>{
+  gsap.from(el,{
+    opacity:0, y:28,
+    duration:.8, ease:'power2.out',
+    scrollTrigger:{ trigger:el, start:'top 88%', toggleActions:'play none none none' }
+  });
+});
+gsap.utils.toArray('.fu').forEach((el,i)=>{
+  gsap.from(el,{
+    opacity:0, y:20,
+    duration:.7, ease:'power2.out',
+    delay: (i%4)*.08,
+    scrollTrigger:{ trigger:el, start:'top 90%', toggleActions:'play none none none' }
+  });
+});
+
+/* ─── CONTACT FORM ────────────────────────────────────────── */
+document.getElementById('contactForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  const name  = document.getElementById('fName').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const msg   = document.getElementById('fMsg').value.trim();
+  const msgEl = document.getElementById('form-msg');
+  const btn   = document.getElementById('submitBtn');
+  const lbl   = document.getElementById('submitLabel');
+
+  if(!name||!email||!msg){
+    msgEl.className='err'; msgEl.style.display='block';
+    msgEl.textContent='Por favor completa todos los campos obligatorios.';
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    msgEl.className='err'; msgEl.style.display='block';
+    msgEl.textContent='El formato del email no es válido.';
+    return;
+  }
+
+  btn.disabled=true; lbl.textContent='ENVIANDO...';
+  // Simulate send (replace with fetch to backend/formspree)
+  setTimeout(()=>{
+    btn.disabled=false; lbl.textContent='ENVIAR MENSAJE →';
+    msgEl.className='ok'; msgEl.style.display='block';
+    msgEl.textContent='✓ Mensaje enviado. Responderemos en menos de 24 horas.';
+    this.reset();
+    setTimeout(()=>{ msgEl.style.display='none'; },6000);
+  },1800);
+});
+</script>
+</body>
+</html>

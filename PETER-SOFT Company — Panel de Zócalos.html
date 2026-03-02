@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<!-- saved from url=(0042)https://escritorio-peter-soft.netlify.app/ -->
+<html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PETER-SOFT Company — Panel de Zócalos</title>
+
+  <meta name="theme-color" content="#0e2239">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- PWA / WebApp instalable -->
+  <link rel="manifest" href="https://escritorio-peter-soft.netlify.app/manifest.json">
+  <link rel="apple-touch-icon" href="./PETER-SOFT Company — Panel de Zócalos_files/image.jpg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PETER-SOFT">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+  <link href="./PETER-SOFT Company — Panel de Zócalos_files/css2" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg0:#0e2239;
+      --bg1:#081a2f;
+      --glass: rgba(15,30,55,.65);
+      --glass2: rgba(15,30,55,.45);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.14);
+      --border2: rgba(255,255,255,.10);
+      --shadow: 0 14px 34px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 14px;
+      --focus: 0 0 0 3px rgba(77,163,255,.35);
+      --font: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+
+      /* Fondo — imagen bg-petersoft.jpg en la misma carpeta */
+      --bg-image: url("bg-petersoft.jpg");
+      --bg-overlay: rgba(6,16,36,.55);   /* oscuro: superposición azul noche */
+      --bg-blur: 2px;
+    }
+
+    /* Tema forzado */
+    html[data-theme="dark"]{
+      --bg0:#0e2239;
+      --bg1:#081a2f;
+      --glass: rgba(15,30,55,.65);
+      --glass2: rgba(15,30,55,.45);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+      --border: rgba(255,255,255,.14);
+      --border2: rgba(255,255,255,.10);
+      --shadow: 0 14px 34px rgba(0,0,0,.35);
+      --bg-overlay: rgba(6,16,36,.55);
+      --bg-blur: 2px;
+    }
+    html[data-theme="light"]{
+      --bg0:#f2f5f8;
+      --bg1:#eaf0f7;
+      --glass: rgba(255,255,255,.86);
+      --glass2: rgba(255,255,255,.70);
+      --text: rgba(8,26,47,.92);
+      --muted: rgba(8,26,47,.70);
+      --border: rgba(8,26,47,.12);
+      --border2: rgba(8,26,47,.10);
+      --shadow: 0 14px 34px rgba(8,26,47,.12);
+      --bg-overlay: rgba(255,255,255,.60); /* claro: velo blanco suave */
+      --bg-blur: 2px;
+    }
+
+    /* Sistema (default) */
+    @media (prefers-color-scheme: light){
+      html:not([data-theme]){
+        --bg0:#f2f5f8;
+        --bg1:#eaf0f7;
+        --glass: rgba(255,255,255,.86);
+        --glass2: rgba(255,255,255,.70);
+        --text: rgba(8,26,47,.92);
+        --muted: rgba(8,26,47,.70);
+        --border: rgba(8,26,47,.12);
+        --border2: rgba(8,26,47,.10);
+        --shadow: 0 14px 34px rgba(8,26,47,.12);
+        --bg-overlay: rgba(255,255,255,.60);
+        --bg-blur: 2px;
+      }
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      min-height: 100vh;
+      background: transparent; /* el fondo lo manejan los divs fijos */
+      position: relative;
+      overflow-x:hidden;
+    }
+
+    /* Fondo (imagen fija) */
+    .bg-image{
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      background-image: var(--bg-image);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transform: scale(1.03);
+    }
+    .bg-overlay{
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: var(--bg-overlay);   /* adapta color según tema */
+      backdrop-filter: blur(var(--bg-blur));
+      -webkit-backdrop-filter: blur(var(--bg-blur));
+      pointer-events:none;
+    }
+    .bg-fallback{
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(77,163,255,.25), transparent 60%),
+        radial-gradient(1000px 650px at 90% 0%, rgba(34,197,94,.16), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg0));
+    }
+
+    header{
+      position: sticky; top:0; z-index:10;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: linear-gradient(to bottom, rgba(0,0,0,.35), rgba(0,0,0,0));
+      padding: 18px 16px 10px;
+    }
+    .wrap{max-width:1200px;margin:0 auto}
+
+    .top{
+      display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+      background: var(--glass2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .brand{display:flex; gap:10px; align-items:center; min-width:280px; padding-right: 6px;}
+    .logo{
+      width:40px;height:40px;border-radius:12px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+      object-fit:cover;
+      display:block;
+      flex: 0 0 auto;
+      user-select:none;
+    }
+    .brand h1{font-size:15px;margin:0;line-height:1.15}
+    .brand p{font-size:12px;margin:2px 0 0;color:var(--muted)}
+    .controls{display:flex; gap:10px; align-items:center; flex:1; min-width:260px; flex-wrap:wrap}
+
+    .search{
+      flex: 1;
+      display:flex; gap:8px; align-items:center;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border2);
+      border-radius: 14px;
+      padding: 10px 12px;
+      min-width: 220px;
+    }
+    .search input{
+      width:100%;
+      border:0; outline:0;
+      background:transparent;
+      color:var(--text);
+      font-size:14px;
+    }
+
+    .btn{
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      color:var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size:13px;
+      cursor:pointer;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease, filter .15s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:hover{background: rgba(255,255,255,.10)}
+    .btn:active{transform: translateY(1px)}
+    .btn.primary{
+      background: rgba(77,163,255,.18);
+      border-color: rgba(77,163,255,.35);
+    }
+    .btn.primary:hover{background: rgba(77,163,255,.25)}
+    .btn.danger{
+      background: rgba(255,91,107,.16);
+      border-color: rgba(255,91,107,.28);
+    }
+    .btn.locked{
+      opacity: .55;
+      cursor: not-allowed;
+      pointer-events:none;
+      filter: grayscale(.2);
+    }
+
+    main{padding: 12px 16px 24px}
+    .hint{margin: 12px 0 0;color: var(--muted);font-size: 12px;line-height: 1.4;}
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+    }
+
+    .grid{margin-top: 14px;display:grid;grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));gap: 14px;}
+
+    .section{
+      background: var(--glass2);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+    }
+    .section-header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border-bottom:1px solid var(--border2);
+    }
+    .section-title{display:flex; gap:10px; align-items:center;font-weight:700;font-size: 13px;}
+    .badge{
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border2);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+    .cards{padding: 12px;display:grid;grid-template-columns: 1fr;gap: 10px;}
+
+    a.card, .card.static{
+      text-decoration:none;
+      color: var(--text);
+      background: var(--glass);
+      border:1px solid var(--border2);
+      border-radius: var(--radius2);
+      padding: 12px 12px;
+      display:flex; gap:12px; align-items:center;
+      min-height: 60px;
+      transition: transform .08s ease, border-color .15s ease, filter .15s ease;
+      position:relative;
+    }
+    a.card:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.18);
+      filter: brightness(1.02);
+    }
+    a.card:focus{outline:none; box-shadow: var(--focus)}
+
+    .ico{
+      width:40px;height:40px;border-radius: 12px;
+      display:grid;place-items:center;
+      background: rgba(77,163,255,.12);
+      border: 1px solid rgba(77,163,255,.25);
+      font-weight:800;
+      flex: 0 0 auto;
+      user-select:none;
+      letter-spacing:.4px;
+      overflow:hidden;
+      position:relative;
+    }
+    .fav{
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      display:none;
+      filter: drop-shadow(0 3px 8px rgba(0,0,0,.25));
+    }
+    .ico.has-fav .fav{display:block;}
+    .ico.has-fav .letters{display:none;}
+    .letters{font-weight:800; font-size: 13px;}
+
+    .card-meta{min-width:0}
+    .card-title{font-size: 14px;font-weight: 700;margin:0;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .card-url{margin:4px 0 0;font-size: 12px;color: var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+    .chips{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; justify-content:flex-end;}
+    .chip{
+      font-size: 11px;
+      color: var(--muted);
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border2);
+    }
+
+    .editbar{display:none; gap:8px; align-items:center; margin-left:auto;}
+    body.editing .chips{display:none}
+    body.editing .editbar{display:flex}
+
+    .mini{
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 7px 9px;
+      font-size: 12px;
+      cursor:pointer;
+    }
+    .mini:active{transform: translateY(1px)}
+    .mini.good{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10)}
+    .mini.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.10)}
+    .mini.bad{border-color: rgba(255,91,107,.35); background: rgba(255,91,107,.10)}
+
+    dialog{
+      border:1px solid var(--border);
+      border-radius: 18px;
+      padding: 0;
+      max-width: 820px;
+      width: calc(100% - 24px);
+      background: var(--glass);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    dialog::backdrop{background: rgba(0,0,0,.55)}
+    .modal-h{
+      padding: 14px 14px 12px;
+      border-bottom: 1px solid var(--border2);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    }
+    .modal-h strong{font-size:14px}
+    .modal-b{padding: 14px}
+    .row{display:grid;grid-template-columns: 1fr 1fr; gap:10px}
+    .row + .row{margin-top:10px}
+    label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px}
+    input, select{
+      width:100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      outline:0;
+      font-size: 13px;
+    }
+    input:focus, select:focus{box-shadow: var(--focus)}
+    .modal-f{
+      padding: 12px 14px;
+      border-top: 1px solid var(--border2);
+      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+    }
+
+    .footer{margin-top: 14px;padding: 10px 16px 18px;color: var(--muted);font-size: 12px;text-align:center;}
+
+    /* WIDGETS — sección full-width */
+    .section.full-width{ grid-column: 1 / -1; }
+
+    /* WIDGETS */
+    .widgetWrap{padding: 12px; width:100%;}
+
+    /* === SMN ALERTAS WIDGET — Mini-página SAT === */
+    .smnWrap{ margin-top: 8px; }
+
+    /* Contenedor principal tipo mini-página */
+    .smnMiniPage{
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* Cabecera institucional SMN */
+    .smnSatHeader{
+      background: linear-gradient(135deg, #06316b 0%, #0a52a8 60%, #1269c4 100%);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .smnSatShield{
+      font-size: 22px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+    .smnSatTitles{ flex:1; min-width:0; }
+    .smnSatTitle{
+      font-size: 13px; font-weight: 800;
+      color: #fff; letter-spacing: .4px;
+      text-transform: uppercase; line-height: 1.2;
+    }
+    .smnSatSubtitle{
+      font-size: 10px; color: rgba(255,255,255,.72);
+      margin-top: 2px; letter-spacing: .3px;
+    }
+    .smnSatRight{
+      display:flex; flex-direction:column;
+      align-items:flex-end; gap:4px; margin-left:auto;
+    }
+    .smnLed{
+      width:13px; height:13px; border-radius:50%; flex:0 0 auto;
+      background:#2a2a2a; border:2px solid rgba(255,255,255,.15);
+      transition: background .3s, box-shadow .3s;
+    }
+    .smnLed.ok  { background:#22c55e; box-shadow:0 0 8px 3px rgba(34,197,94,.6); }
+    .smnLed.warn{ background:#f59e0b; box-shadow:0 0 8px 3px rgba(245,158,11,.6); }
+    .smnLed.alert{
+      background:#ef4444;
+      animation: smnPulse .85s ease-in-out infinite;
+    }
+    @keyframes smnPulse{
+      0%,100%{ box-shadow:0 0 16px 6px rgba(239,68,68,.9); opacity:1; }
+      50%     { box-shadow:0 0 4px 1px rgba(239,68,68,.25); opacity:.45; }
+    }
+    .smnSatLedRow{
+      display:flex; align-items:center; gap:6px;
+    }
+    .smnSatLedLabel{ font-size:10px; color:rgba(255,255,255,.8); }
+    .smnSatUpdated{ font-size:10px; color:rgba(255,255,255,.55); }
+
+    /* Barra de estado + leyenda */
+    .smnSatBar{
+      background: rgba(0,0,0,.25);
+      padding: 7px 14px;
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .smnSatStatus{
+      font-size: 12px; font-weight: 700; flex:1;
+    }
+    .smnSatLegend{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+    }
+    .smnLegItem{
+      font-size: 10px; color:var(--muted);
+      display:flex; align-items:center; gap:3px;
+    }
+    .smnLegDot{
+      width:8px; height:8px; border-radius:50%; flex:0 0 auto;
+    }
+    .smnLegDot.amarillo{ background:#eab308; }
+    .smnLegDot.naranja { background:#f97316; }
+    .smnLegDot.rojo    { background:#ef4444; }
+
+    /* Cuerpo de provincias */
+    .smnSatBody{
+      padding: 10px;
+      background: rgba(0,0,0,.12);
+    }
+    .smnProvinces{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:8px;
+    }
+    @media (max-width:700px){ .smnProvinces{ grid-template-columns:1fr; } }
+    .smnProv{
+      border:1px solid var(--border2);
+      background:rgba(255,255,255,.05);
+      border-radius:12px;
+      padding:9px 11px;
+      transition: border-color .3s, background .3s;
+    }
+    .smnProvName{
+      font-weight:800; font-size:12px; margin-bottom:6px;
+      display:flex; align-items:center; gap:6px;
+    }
+    .smnProvFlag{ font-size:14px; }
+    .smnNoAlert { font-size:11px; color:var(--muted); }
+    .smnAlertItem{
+      font-size:11px; padding:5px 8px; border-radius:8px;
+      margin:3px 0; line-height:1.4;
+      background:rgba(239,68,68,.13); border:1px solid rgba(239,68,68,.3);
+    }
+    .smnAlertItem.naranja  { background:rgba(249,115,22,.13); border-color:rgba(249,115,22,.35); }
+    .smnAlertItem.amarillo { background:rgba(234,179,8,.11);  border-color:rgba(234,179,8,.30); }
+    .smnAlertNivel{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
+    .smnAlertEvento{ margin-top:2px; font-weight:600; }
+    .smnAlertZona  { font-size:10px; color:var(--muted); margin-top:2px; }
+    .smnAlertTiempo{ font-size:10px; color:var(--muted); margin-top:1px; font-style:italic; }
+
+    /* Pie de página SAT */
+    .smnSatFooter{
+      padding: 8px 14px;
+      background: rgba(0,0,0,.20);
+      border-top: 1px solid rgba(255,255,255,.07);
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:8px;
+    }
+    .smnLink{
+      font-size:11px; color:rgba(77,163,255,.85);
+      text-decoration:none; display:inline-flex; align-items:center; gap:4px;
+    }
+    .smnLink:hover{ color:#fff; }
+    .smnSatCopy{ font-size:10px; color:var(--muted); }
+
+    /* === SECCIONES DE LINKS — grid de botones === */
+    .section:not(.full-width) .cards{
+      grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+      gap: 7px;
+      padding: 10px 12px 12px;
+    }
+    .section:not(.full-width) a.card{
+      flex-direction: row;
+      min-height: 52px;
+      padding: 9px 11px;
+      border-radius: 12px;
+      gap: 9px;
+      align-items: center;
+    }
+    .section:not(.full-width) .ico{
+      width: 36px; height: 36px;
+      border-radius: 10px;
+    }
+    .section:not(.full-width) .card-meta{ min-width:0; flex:1; }
+    .section:not(.full-width) .card-title{
+      font-size: 12px;
+      font-weight: 700;
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      text-overflow: unset;
+      line-height: 1.25;
+    }
+    .section:not(.full-width) .card-url{ display: none; }
+    .section:not(.full-width) .chips   { display: none; }
+    /* Modo edición: editbar ocupa segunda fila dentro del tile */
+    body.editing .section:not(.full-width) a.card{
+      flex-wrap: wrap;
+      padding-bottom: 6px;
+    }
+    body.editing .section:not(.full-width) .editbar{
+      width: 100%;
+      margin-left: 0;
+      margin-top: 4px;
+      justify-content: flex-start;
+    }
+    body.editing .section:not(.full-width) .mini{
+      padding: 4px 7px;
+      font-size: 11px;
+    }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+      margin:6px 0 0;
+      line-height:1.3;
+    }
+    .wxCities{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap:10px;
+      margin-top: 8px;
+    }
+    .wxCity{
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 10px;
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+      transition: transform .1s ease, border-color .15s ease, background .15s ease;
+    }
+    a.wxCity:hover{
+      transform: translateY(-2px);
+      border-color: rgba(77,163,255,.45);
+      background: rgba(77,163,255,.08);
+    }
+    a.wxCity:focus{ outline:none; box-shadow: var(--focus); }
+    .wxCityBadge{
+      font-size:10px;
+      color: rgba(77,163,255,.85);
+      margin-top: 4px;
+      display: block;
+      letter-spacing: .3px;
+    }
+    .wxCityHead{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 8px;
+    }
+    .wxCityName{font-weight:800;font-size:13px}
+    .wxNow{color:var(--muted);font-size:12px;white-space:nowrap}
+    .wxDays{
+      display:grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap:8px;
+    }
+    .wxDay{
+      border:1px solid var(--border2);
+      background: rgba(0,0,0,.08);
+      border-radius: 14px;
+      padding: 8px 8px;
+      min-height: 66px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .wxDow{font-size:11px;color:var(--muted);letter-spacing:.2px}
+    .wxTemps{font-size:12px;font-weight:800}
+    .wxIcon{font-size:14px}
+
+    .metarGrid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap:10px;
+      margin-top:8px;
+    }
+    .metarBox{
+      border:1px solid var(--border2);
+      background: rgba(255,255,255,.06);
+      border-radius: 16px;
+      padding: 10px;
+    }
+    .metarTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
+      flex-wrap:wrap;
+    }
+    .metarTitle strong{font-size:13px}
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height:1.35;
+      margin:0;
+    }
+    .metarBtns{display:flex; gap:8px; flex-wrap:wrap;}
+    a.badgeLink{
+      text-decoration:none;
+      color: var(--muted);
+    }
+    a.badgeLink:hover{filter: brightness(1.05)}
+
+    /* Preview modal */
+    .pvWrap{padding: 0;}
+    .pvTop{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border2);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .pvTop .left{
+      display:flex; gap:10px; align-items:center; min-width:0;
+    }
+    .pvTitle{
+      font-weight:800; font-size:13px; margin:0;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .pvUrl{
+      margin:2px 0 0; font-size:12px; color:var(--muted);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .pvBody{padding: 0;}
+    .pvIframe{
+      width: 100%;
+      height: min(70vh, 720px);
+      border:0;
+      background: rgba(0,0,0,.08);
+    }
+    .pvMsg{
+      padding: 14px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.92);
+      padding: 10px 12px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      z-index: 99;
+      display:none;
+      max-width: calc(100% - 20px);
+    }
+    .toast.show{display:block}
+  </style>
+</head>
+
+<body>
+  <div class="bg-image" aria-hidden="true"></div>
+  <div class="bg-fallback" aria-hidden="true"></div>
+  <div class="bg-overlay" aria-hidden="true"></div>
+
+  <header>
+    <div class="wrap">
+      <div class="top">
+        <div class="brand" aria-label="Accesos frecuentes">
+          <img src="./PETER-SOFT Company — Panel de Zócalos_files/image.jpg" class="logo" alt="PETER-SOFT">
+          <div>
+            <h1>PETER-SOFT Company</h1>
+            <p>Panel de zócalos • editable • guardado local</p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="search" title="Filtrar por nombre, URL o etiqueta">
+            🔎 <input id="q" type="search" placeholder="Buscar… (ej: correo, bcra, sisa, ia, videos)" autocomplete="off">
+          </div>
+
+          <button class="btn" id="themeBtn" title="Cambiar tema (Sistema / Claro / Oscuro)">🌓 Tema: Sistema</button>
+
+          <button class="btn" id="lockBtn" title="Bloquear/Desbloquear edición">🔒 Bloqueado</button>
+          <button class="btn primary locked" id="toggleEdit">✏️ Editar</button>
+          <button class="btn locked" id="addLink">➕ Agregar</button>
+          <button class="btn danger locked" id="reset">♻️ Reset</button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <div id="grid" class="grid" aria-live="polite"><section class="section"><div class="section-header"><div class="section-title">📌 <span>Consultorio / Web</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://juegosconsultoriodagnino.netlify.app/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons"><span class="letters">JCD</span></div><div class="card-meta"><p class="card-title">Juegos Consultorio Dagnino (web)</p><p class="card-url">https://juegosconsultoriodagnino.netlify.app/</p></div><div class="chips"><span class="chip">consultorio</span><span class="chip">web</span><span class="chip">netlify</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://noticiasdesaludmentaldagnino.netlify.app/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(1)"><span class="letters">NSM</span></div><div class="card-meta"><p class="card-title">Noticias de Salud Mental (web)</p><p class="card-url">https://noticiasdesaludmentaldagnino.netlify.app/</p></div><div class="chips"><span class="chip">noticias</span><span class="chip">salud mental</span><span class="chip">netlify</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Trabajo</span></div><span class="badge">3</span></div><div class="cards"><a class="card" href="https://app.netlify.com/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(2)"><span class="letters">NL</span></div><div class="card-meta"><p class="card-title">Netlify</p><p class="card-url">https://app.netlify.com/</p></div><div class="chips"><span class="chip">deploy</span><span class="chip">web</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://webcorreo.faa.mil.ar/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(3)"><span class="letters">FAA</span></div><div class="card-meta"><p class="card-title">Correo oficial FAA</p><p class="card-url">https://webcorreo.faa.mil.ar/</p></div><div class="chips"><span class="chip">correo</span><span class="chip">trabajo</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://esueldos.faa.mil.ar/auth/login" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(4)"><span class="letters">ES</span></div><div class="card-meta"><p class="card-title">eSueldos FAA</p><p class="card-url">https://esueldos.faa.mil.ar/auth/login</p></div><div class="chips"><span class="chip">faa</span><span class="chip">sueldos</span><span class="chip">trabajo</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Zona Militar</span></div><span class="badge">0</span></div><div class="cards"><div style="color: var(--muted); font-size: 12px; padding: 10px 2px;">Sin zócalos todavía.</div></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Salud</span></div><span class="badge">4</span></div><div class="cards"><a class="card" href="https://www.pami.org.ar/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(5)"><span class="letters">PA</span></div><div class="card-meta"><p class="card-title">PAMI</p><p class="card-url">https://www.pami.org.ar/</p></div><div class="chips"><span class="chip">salud</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://sisa.msal.gov.ar/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(6)"><span class="letters">SI</span></div><div class="card-meta"><p class="card-title">SISA</p><p class="card-url">https://sisa.msal.gov.ar/</p></div><div class="chips"><span class="chip">salud</span><span class="chip">msal</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://www.misrx.com.ar/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(7)"><span class="letters">RX</span></div><div class="card-meta"><p class="card-title">MisRx</p><p class="card-url">https://www.misrx.com.ar/</p></div><div class="chips"><span class="chip">recetas</span><span class="chip">app</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://www.argentina.gob.ar/precios-de-medicamentos" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(8)"><span class="letters">PM</span></div><div class="card-meta"><p class="card-title">Precios de medicamentos</p><p class="card-url">https://www.argentina.gob.ar/precios-de-medicamentos</p></div><div class="chips"><span class="chip">remedios</span><span class="chip">precios</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Finanzas</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://www.bcra.gob.ar/situacion-crediticia/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(9)"><span class="letters">BC</span></div><div class="card-meta"><p class="card-title">Deudores BCRA (situación crediticia)</p><p class="card-url">https://www.bcra.gob.ar/situacion-crediticia/</p></div><div class="chips"><span class="chip">bcra</span><span class="chip">deudores</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://www.nosis.com/es" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(10)"><span class="letters">NO</span></div><div class="card-meta"><p class="card-title">Informes comerciales (Nosis)</p><p class="card-url">https://www.nosis.com/es</p></div><div class="chips"><span class="chip">informes</span><span class="chip">comercial</span><span class="chip">cuit</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Compras</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://www.mercadolibre.com.ar/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(11)"><span class="letters">ML</span></div><div class="card-meta"><p class="card-title">Mercado Libre</p><p class="card-url">https://www.mercadolibre.com.ar/</p></div><div class="chips"><span class="chip">compras</span><span class="chip">arg</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://www.amazon.com/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(12)"><span class="letters">AZ</span></div><div class="card-meta"><p class="card-title">Amazon</p><p class="card-url">https://www.amazon.com/</p></div><div class="chips"><span class="chip">compras</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Herramientas</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://turboscribe.ai/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(13)"><span class="letters">TS</span></div><div class="card-meta"><p class="card-title">Audio a texto (TurboScribe)</p><p class="card-url">https://turboscribe.ai/</p></div><div class="chips"><span class="chip">audio</span><span class="chip">texto</span><span class="chip">transcribir</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://es.savefrom.net/191Un/sf" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(14)"><span class="letters">SF</span></div><div class="card-meta"><p class="card-title">Descargador de videos (SaveFrom)</p><p class="card-url">https://es.savefrom.net/191Un/sf</p></div><div class="chips"><span class="chip">videos</span><span class="chip">descargar</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>IA / Investigación</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://notebooklm.google.com/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(15)"><span class="letters">NB</span></div><div class="card-meta"><p class="card-title">NotebookLM</p><p class="card-url">https://notebooklm.google.com/</p></div><div class="chips"><span class="chip">ia</span><span class="chip">resumen</span><span class="chip">pdf</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://chat.deepseek.com/a/chat/s/2fd3a2f1-d2d0-4e14-95e6-93408f71f585" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(16)"><span class="letters">DS</span></div><div class="card-meta"><p class="card-title">Motores IA (DeepSeek)</p><p class="card-url">https://chat.deepseek.com/a/chat/s/2fd3a2f1-d2d0-4e14-95e6-93408f71f585</p></div><div class="chips"><span class="chip">ia</span><span class="chip">chat</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Nube / Archivos</span></div><span class="badge">1</span></div><div class="cards"><a class="card" href="https://www.dropbox.com/" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(17)"><span class="letters">DB</span></div><div class="card-meta"><p class="card-title">Dropbox</p><p class="card-url">https://www.dropbox.com/</p></div><div class="chips"><span class="chip">archivos</span><span class="chip">nube</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section"><div class="section-header"><div class="section-title">📌 <span>Identidad / Trámites</span></div><span class="badge">2</span></div><div class="cards"><a class="card" href="https://www.argentina.gob.ar/interior/renaper" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(8)"><span class="letters">RN</span></div><div class="card-meta"><p class="card-title">RENAPER</p><p class="card-url">https://www.argentina.gob.ar/interior/renaper</p></div><div class="chips"><span class="chip">dni</span><span class="chip">trámites</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a><a class="card" href="https://micuilonline.com.ar/averiguar-cuil-cuit" target="_blank" rel="noopener noreferrer"><div class="ico has-fav"><img class="fav" alt="" src="./PETER-SOFT Company — Panel de Zócalos_files/favicons(18)"><span class="letters">CU</span></div><div class="card-meta"><p class="card-title">Saber mi CUIL/CUIT</p><p class="card-url">https://micuilonline.com.ar/averiguar-cuil-cuit</p></div><div class="chips"><span class="chip">cuil</span><span class="chip">cuit</span></div><div class="editbar"><button class="mini warn" type="button" title="Preview">👁</button><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini warn" type="button" title="Editar">Editar</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></a></div></section><section class="section full-width"><div class="section-header"><div class="section-title">📌 <span>Widgets</span></div><span class="badge">3</span></div><div class="cards"><div class="card static" style="flex-direction: column; align-items: stretch;"><div style="display: flex; gap: 12px; align-items: center;"><div class="ico"><span class="letters">WX</span></div><div class="card-meta"><p class="card-title">Pronóstico 5 días (BA/RES/SDE)</p><p class="card-url">BA • Resistencia • Santiago del Estero</p></div><div class="chips"><span class="chip">clima</span><span class="chip">5 días</span><span class="chip">open-meteo</span></div><div class="editbar"><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></div><div class="widgetWrap"><div class="badge">OK</div><div class="wxCities"><a class="wxCity" href="https://weather.com/es-US/tiempo/hoy/l/Buenos+Aires+Buenos+Aires+Argentina" target="_blank" rel="noopener noreferrer" title="Ver pronóstico de Buenos Aires en weather.com"><div class="wxCityHead"><div class="wxCityName">Buenos Aires</div><div class="wxNow">Ahora: 22° (ST 23°)</div></div><div class="wxDays"><div class="wxDay"><div class="wxDow">dom</div><div class="wxIcon">☁️</div><div class="wxTemps">29° / 20°</div></div><div class="wxDay"><div class="wxDow">lun</div><div class="wxIcon">🌧️</div><div class="wxTemps">29° / 22°</div></div><div class="wxDay"><div class="wxDow">mar</div><div class="wxIcon">⛈️</div><div class="wxTemps">31° / 21°</div></div><div class="wxDay"><div class="wxDow">mié</div><div class="wxIcon">🌤️</div><div class="wxTemps">25° / 14°</div></div><div class="wxDay"><div class="wxDow">jue</div><div class="wxIcon">☁️</div><div class="wxTemps">26° / 15°</div></div></div><span class="wxCityBadge">🌐 Ver en weather.com →</span></a><a class="wxCity" href="https://weather.com/es-US/tiempo/hoy/l/Resistencia+Chaco+Argentina" target="_blank" rel="noopener noreferrer" title="Ver pronóstico de Resistencia en weather.com"><div class="wxCityHead"><div class="wxCityName">Resistencia</div><div class="wxNow">Ahora: 23° (ST 26°)</div></div><div class="wxDays"><div class="wxDay"><div class="wxDow">dom</div><div class="wxIcon">☁️</div><div class="wxTemps">34° / 22°</div></div><div class="wxDay"><div class="wxDow">lun</div><div class="wxIcon">🌫️</div><div class="wxTemps">33° / 22°</div></div><div class="wxDay"><div class="wxDow">mar</div><div class="wxIcon">🌫️</div><div class="wxTemps">34° / 22°</div></div><div class="wxDay"><div class="wxDow">mié</div><div class="wxIcon">☁️</div><div class="wxTemps">34° / 21°</div></div><div class="wxDay"><div class="wxDow">jue</div><div class="wxIcon">☁️</div><div class="wxTemps">32° / 18°</div></div></div><span class="wxCityBadge">🌐 Ver en weather.com →</span></a><a class="wxCity" href="https://weather.com/es-US/tiempo/hoy/l/Santiago+del+Estero+Santiago+del+Estero+Argentina" target="_blank" rel="noopener noreferrer" title="Ver pronóstico de Santiago del Estero en weather.com"><div class="wxCityHead"><div class="wxCityName">Santiago del Estero</div><div class="wxNow">Ahora: 24° (ST 27°)</div></div><div class="wxDays"><div class="wxDay"><div class="wxDow">dom</div><div class="wxIcon">🌧️</div><div class="wxTemps">29° / 22°</div></div><div class="wxDay"><div class="wxDow">lun</div><div class="wxIcon">☁️</div><div class="wxTemps">33° / 21°</div></div><div class="wxDay"><div class="wxDow">mar</div><div class="wxIcon">🌫️</div><div class="wxTemps">36° / 21°</div></div><div class="wxDay"><div class="wxDow">mié</div><div class="wxIcon">☁️</div><div class="wxTemps">32° / 23°</div></div><div class="wxDay"><div class="wxDow">jue</div><div class="wxIcon">⛈️</div><div class="wxTemps">28° / 21°</div></div></div><span class="wxCityBadge">🌐 Ver en weather.com →</span></a></div><div class="small">Última actualización: 22/2/2026, 02:45:50</div></div></div><div class="card static" style="flex-direction: column; align-items: stretch;"><div style="display: flex; gap: 12px; align-items: center;"><div class="ico"><span class="letters">MT</span></div><div class="card-meta"><p class="card-title">METAR + Decoded (SARE/SABE)</p><p class="card-url">SARE • SABE — aviationweather.gov/data/metar</p></div><div class="chips"><span class="chip">aviationweather</span><span class="chip">metar</span><span class="chip">decoded</span></div><div class="editbar"><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></div><div class="widgetWrap"><div class="badge">OK</div><div class="metarGrid"><div class="metarBox"><div class="metarTitle"><div><strong>Resistencia</strong> <span class="badge">SARE</span></div><div class="metarBtns"><a href="https://aviationweather.gov/data/metar/?ids=SARE" target="_blank" rel="noopener noreferrer" class="badge badgeLink">Ver en AW</a><a href="https://aviationweather.gov/api/data/metar?ids=SARE&amp;format=raw&amp;hours=1&amp;taf=off" target="_blank" rel="noopener noreferrer" class="badge badgeLink">RAW API</a></div></div><pre class="mono">RAW:
+(No disponible por CORS) → abrí “Raw (preview)”.</pre><pre class="mono" style="margin-top: 8px;">DECODED: abrir en “Decoded (preview)” para ver cada ítem explicado.</pre><div class="small">Si no carga RAW acá, el navegador lo está bloqueando: usá los previews.</div></div><div class="metarBox"><div class="metarTitle"><div><strong>Buenos Aires (AEP)</strong> <span class="badge">SABE</span></div><div class="metarBtns"><a href="https://aviationweather.gov/data/metar/?ids=SABE" target="_blank" rel="noopener noreferrer" class="badge badgeLink">Ver en AW</a><a href="https://aviationweather.gov/api/data/metar?ids=SABE&amp;format=raw&amp;hours=1&amp;taf=off" target="_blank" rel="noopener noreferrer" class="badge badgeLink">RAW API</a></div></div><pre class="mono">RAW:
+(No disponible por CORS) → abrí “Raw (preview)”.</pre><pre class="mono" style="margin-top: 8px;">DECODED: abrir en “Decoded (preview)” para ver cada ítem explicado.</pre><div class="small">Si no carga RAW acá, el navegador lo está bloqueando: usá los previews.</div></div></div><div class="small">Última actualización: 22/2/2026, 02:45:49</div></div></div><div class="card static" style="flex-direction: column; align-items: stretch;"><div style="display: flex; gap: 12px; align-items: center;"><div class="ico"><span class="letters">SMN</span></div><div class="card-meta"><p class="card-title">Alertas SMN — CABA · Chaco · SDE</p><p class="card-url">Sistema de Alerta Temprana — CABA · Chaco · Sgo. del Estero</p></div><div class="chips"><span class="chip">smn</span><span class="chip">alertas</span><span class="chip">tiempo severo</span></div><div class="editbar"><button class="mini good" type="button" title="Subir">↑</button><button class="mini good" type="button" title="Bajar">↓</button><button class="mini bad" type="button" title="Borrar">Borrar</button></div></div><div class="widgetWrap smnWrap" style="padding: 0px;"><div class="smnMiniPage"><div class="smnSatHeader"><div class="smnSatShield">🌩️</div><div class="smnSatTitles">
+        <div class="smnSatTitle">Sistema de Alerta Temprana</div>
+        <div class="smnSatSubtitle">Servicio Meteorológico Nacional — Argentina</div>
+      </div><div class="smnSatRight"><div class="smnSatLedRow"><div class="smnLed"></div><span class="smnSatLedLabel">Estado</span></div><div class="smnSatUpdated">Error de conexión</div></div></div><div class="smnSatBar"><div class="smnSatStatus">⚠️ No se pudo obtener alertas SMN</div><div class="smnSatLegend">
+        <span class="smnLegItem"><span class="smnLegDot amarillo"></span> Amarillo</span>
+        <span class="smnLegItem"><span class="smnLegDot naranja"></span> Naranja</span>
+        <span class="smnLegItem"><span class="smnLegDot rojo"></span> Rojo</span>
+      </div></div><div class="smnSatBody"><div class="smnProvinces"><div class="smnProv" id="smnProv_c574afe226b719c83e1f3d3_CABA"><div class="smnProvName"><span class="smnProvFlag">🏙️</span>CABA</div><div class="smnNoAlert">Cargando…</div></div><div class="smnProv" id="smnProv_c574afe226b719c83e1f3d3_CHA"><div class="smnProvName"><span class="smnProvFlag">🌿</span>Chaco</div><div class="smnNoAlert">Cargando…</div></div><div class="smnProv" id="smnProv_c574afe226b719c83e1f3d3_SDE"><div class="smnProvName"><span class="smnProvFlag">🌵</span>Santiago del Estero</div><div class="smnNoAlert">Cargando…</div></div></div></div><div class="smnSatFooter"><a href="https://www.smn.gob.ar/alertas" target="_blank" rel="noopener noreferrer" class="smnLink">🔗 Ver mapa de alertas en smn.gob.ar →</a><span class="smnSatCopy">Se actualiza cada 5 min</span></div></div></div></div></div></section></div>
+    </div>
+    <div class="footer">
+      Atajos: <span class="kbd">Ctrl</span>+<span class="kbd">F</span>
+    </div>
+  </main>
+
+  <!-- CRUD -->
+  <dialog id="dlg">
+    <div class="modal-h">
+      <strong id="dlgTitle">Agregar zócalo</strong>
+      <button class="btn" id="closeDlg" type="button">Cerrar</button>
+    </div>
+    <div class="modal-b">
+      <div class="row">
+        <div>
+          <label for="fTitle">Título</label>
+          <input id="fTitle" placeholder="Ej: Correo oficial FAA">
+        </div>
+        <div>
+          <label for="fCat">Categoría</label>
+          <select id="fCat"></select>
+        </div>
+      </div>
+      <div class="row">
+        <div style="grid-column: 1 / -1;">
+          <label for="fUrl">URL</label>
+          <input id="fUrl" placeholder="https://...">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="fIcon">Icono letras (opcional)</label>
+          <input id="fIcon" placeholder="FAA" maxlength="3">
+          <div class="small">Si hay URL, se intentará usar favicon automáticamente.</div>
+        </div>
+        <div>
+          <label for="fTags">Etiquetas (coma)</label>
+          <input id="fTags" placeholder="trabajo, salud, trámites">
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" id="cancelDlg" type="button">Cancelar</button>
+      <button class="btn primary" id="saveDlg" type="button">Guardar</button>
+    </div>
+  </dialog>
+
+  <!-- PIN -->
+  <dialog id="pinDlg">
+    <div class="modal-h">
+      <strong id="pinTitle">Desbloquear edición</strong>
+      <button class="btn" id="closePin" type="button">Cerrar</button>
+    </div>
+    <div class="modal-b">
+      <div class="row" style="grid-template-columns: 1fr;">
+        <div>
+          <label for="pinInput">Ingresar PIN</label>
+          <input id="pinInput" type="password" inputmode="numeric" placeholder="PIN">
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" id="cancelPin" type="button">Cancelar</button>
+      <button class="btn primary" id="okPin" type="button">OK</button>
+    </div>
+  </dialog>
+
+  <!-- PREVIEW -->
+  <dialog id="pvDlg">
+    <div class="pvTop">
+      <div class="left">
+        <div class="ico" id="pvIco"><span class="letters">PV</span></div>
+        <div style="min-width:0">
+          <p class="pvTitle" id="pvTitle">Preview</p>
+          <p class="pvUrl" id="pvUrl">—</p>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+        <a class="btn primary" id="pvOpen" href="https://escritorio-peter-soft.netlify.app/#" target="_blank" rel="noopener noreferrer">Abrir en pestaña</a>
+        <button class="btn" id="pvClose" type="button">Cerrar</button>
+      </div>
+    </div>
+    <div class="pvBody" id="pvBody">
+      <iframe class="pvIframe" id="pvFrame" title="Vista previa" loading="lazy" src="./PETER-SOFT Company — Panel de Zócalos_files/saved_resource.html"></iframe>
+      <div class="pvMsg" id="pvMsg" style="display:none">
+        Este sitio bloquea la vista previa dentro del panel (seguridad del navegador).
+        Usá “Abrir en pestaña”.
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast">Edición bloqueada.</div>
+
+  <script>
+    // =======================
+    // PIN DE EDICIÓN
+    // =======================
+    const EDIT_PIN = "2498"; // <-- tu PIN
+
+    const AUTH_KEY = "peter_soft_edit_auth_v1";
+
+    // =======================
+    // TEMA (Sistema/Claro/Oscuro)
+    // =======================
+    const THEME_KEY = "peter_soft_theme_v1"; // "system" | "light" | "dark"
+    const themeBtn = document.getElementById("themeBtn");
+
+    function getTheme(){ return localStorage.getItem(THEME_KEY) || "system"; }
+    function setTheme(v){
+      localStorage.setItem(THEME_KEY, v);
+      applyTheme();
+    }
+    function applyTheme(){
+      const v = getTheme();
+      if(v === "system"){
+        document.documentElement.removeAttribute("data-theme");
+        themeBtn.textContent = "🌓 Tema: Sistema";
+      } else if(v === "light"){
+        document.documentElement.setAttribute("data-theme", "light");
+        themeBtn.textContent = "☀️ Tema: Claro";
+      } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+        themeBtn.textContent = "🌙 Tema: Oscuro";
+      }
+    }
+    themeBtn.addEventListener("click", ()=>{
+      const v = getTheme();
+      const next = v === "system" ? "light" : (v === "light" ? "dark" : "system");
+      setTheme(next);
+    });
+
+    function isAuthed(){ return sessionStorage.getItem(AUTH_KEY) === "1"; }
+    function setAuthed(v){ sessionStorage.setItem(AUTH_KEY, v ? "1" : "0"); }
+
+    function toast(msg){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(window.__t);
+      window.__t = setTimeout(()=>t.classList.remove("show"), 2200);
+    }
+
+    // =======================
+    // ZÓCALOS (datos default)
+    // =======================
+    function uid(){ return Math.random().toString(16).slice(2) + Date.now().toString(16); }
+
+    const DEFAULT = {
+      categories: [
+        { id: "widgets",     name: "Widgets" },
+        { id: "consultorio", name: "Consultorio / Web" },
+        { id: "trabajo",     name: "Trabajo" },
+        { id: "militar",     name: "Zona Militar" },
+        { id: "salud",       name: "Salud" },
+        { id: "finanzas",    name: "Finanzas" },
+        { id: "compras",     name: "Compras" },
+        { id: "tools",       name: "Herramientas" },
+        { id: "ia",          name: "IA / Investigación" },
+        { id: "nube",        name: "Nube / Archivos" },
+        { id: "id",          name: "Identidad / Trámites" },
+      ],
+      links: [
+        { id: uid(), cat:"widgets", type:"widget_forecast",     title:"Pronóstico 5 días (BA/RES/SDE)",         icon:"WX",  tags:["clima","5 días","open-meteo"] },
+        { id: uid(), cat:"widgets", type:"widget_metar",        title:"METAR + Decoded (SARE/SABE)",            icon:"MT",  tags:["aviationweather","metar","decoded"] },
+        { id: uid(), cat:"widgets", type:"widget_smn_alertas",  title:"Alertas SMN — CABA · Chaco · SDE",       icon:"SMN", tags:["smn","alertas","tiempo severo"] },
+
+        { id: uid(), cat:"consultorio", title:"Juegos Consultorio Dagnino (web)", url:"https://juegosconsultoriodagnino.netlify.app/", icon:"JCD",
+          tags:["consultorio","web","netlify"] },
+        { id: uid(), cat:"consultorio", title:"Noticias de Salud Mental (web)", url:"https://noticiasdesaludmentaldagnino.netlify.app/", icon:"NSM",
+          tags:["noticias","salud mental","netlify"] },
+
+        { id: uid(), cat:"trabajo", title:"Netlify", url:"https://app.netlify.com/", icon:"NL", tags:["deploy","web"] },
+        { id: uid(), cat:"trabajo", title:"Correo oficial FAA", url:"https://webcorreo.faa.mil.ar/", icon:"FAA", tags:["correo","trabajo"] },
+        { id: uid(), cat:"trabajo", title:"eSueldos FAA", url:"https://esueldos.faa.mil.ar/auth/login", icon:"ES", tags:["faa","sueldos","trabajo"] },
+
+        { id: uid(), cat:"compras", title:"Mercado Libre", url:"https://www.mercadolibre.com.ar/", icon:"ML", tags:["compras","arg"] },
+        { id: uid(), cat:"compras", title:"Amazon", url:"https://www.amazon.com/", icon:"AZ", tags:["compras"] },
+
+        { id: uid(), cat:"tools", title:"Audio a texto (TurboScribe)", url:"https://turboscribe.ai/", icon:"TS", tags:["audio","texto","transcribir"] },
+        { id: uid(), cat:"tools", title:"Descargador de videos (SaveFrom)", url:"https://es.savefrom.net/191Un/sf", icon:"SF", tags:["videos","descargar"] },
+
+        { id: uid(), cat:"ia", title:"NotebookLM", url:"https://notebooklm.google.com/", icon:"NB", tags:["ia","resumen","pdf"] },
+        { id: uid(), cat:"ia", title:"Motores IA (DeepSeek)", url:"https://chat.deepseek.com/a/chat/s/2fd3a2f1-d2d0-4e14-95e6-93408f71f585", icon:"DS", tags:["ia","chat"] },
+
+        { id: uid(), cat:"nube", title:"Dropbox", url:"https://www.dropbox.com/", icon:"DB", tags:["archivos","nube"] },
+
+        { id: uid(), cat:"salud", title:"PAMI", url:"https://www.pami.org.ar/", icon:"PA", tags:["salud"] },
+        { id: uid(), cat:"salud", title:"SISA", url:"https://sisa.msal.gov.ar/", icon:"SI", tags:["salud","msal"] },
+        { id: uid(), cat:"salud", title:"MisRx", url:"https://www.misrx.com.ar/", icon:"RX", tags:["recetas","app"] },
+        { id: uid(), cat:"salud", title:"Precios de medicamentos", url:"https://www.argentina.gob.ar/precios-de-medicamentos", icon:"PM", tags:["remedios","precios"] },
+
+        { id: uid(), cat:"id", title:"RENAPER", url:"https://www.argentina.gob.ar/interior/renaper", icon:"RN", tags:["dni","trámites"] },
+        { id: uid(), cat:"id", title:"Saber mi CUIL/CUIT", url:"https://micuilonline.com.ar/averiguar-cuil-cuit", icon:"CU", tags:["cuil","cuit"] },
+
+        { id: uid(), cat:"finanzas", title:"Deudores BCRA (situación crediticia)", url:"https://www.bcra.gob.ar/situacion-crediticia/", icon:"BC", tags:["bcra","deudores"] },
+        { id: uid(), cat:"finanzas", title:"Informes comerciales (Nosis)", url:"https://www.nosis.com/es", icon:"NO", tags:["informes","comercial","cuit"] },
+      ]
+    };
+
+    const STORAGE_KEY = "peter_soft_panel_v5";
+
+    function load(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return structuredClone(DEFAULT);
+        const data = JSON.parse(raw);
+        if(!data.categories || !data.links) return structuredClone(DEFAULT);
+
+        // Migración: agregar categorías nuevas del DEFAULT que falten en localStorage
+        let migrated = false;
+        for(const defCat of DEFAULT.categories){
+          if(!data.categories.find(c => c.id === defCat.id)){
+            const defIdx = DEFAULT.categories.findIndex(c => c.id === defCat.id);
+            let insertAt = data.categories.length;
+            for(let i = defIdx + 1; i < DEFAULT.categories.length; i++){
+              const nextIdx = data.categories.findIndex(c => c.id === DEFAULT.categories[i].id);
+              if(nextIdx !== -1){ insertAt = nextIdx; break; }
+            }
+            data.categories.splice(insertAt, 0, structuredClone(defCat));
+            migrated = true;
+          }
+        }
+        if(migrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+        return data;
+      }catch{
+        return structuredClone(DEFAULT);
+      }
+    }
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+    let state = load();
+    let editing = false;
+    let editId = null;
+
+    // UI
+    const grid = document.getElementById("grid");
+    const q = document.getElementById("q");
+
+    const lockBtn = document.getElementById("lockBtn");
+    const toggleEdit = document.getElementById("toggleEdit");
+    const addLinkBtn = document.getElementById("addLink");
+    const resetBtn = document.getElementById("reset");
+
+    const dlg = document.getElementById("dlg");
+    const dlgTitle = document.getElementById("dlgTitle");
+    const cancelDlg = document.getElementById("cancelDlg");
+    const saveDlg = document.getElementById("saveDlg");
+    const closeDlg = document.getElementById("closeDlg");
+    const fTitle = document.getElementById("fTitle");
+    const fCat = document.getElementById("fCat");
+    const fUrl = document.getElementById("fUrl");
+    const fIcon = document.getElementById("fIcon");
+    const fTags = document.getElementById("fTags");
+
+    const pinDlg = document.getElementById("pinDlg");
+    const pinInput = document.getElementById("pinInput");
+    const okPin = document.getElementById("okPin");
+    const cancelPin = document.getElementById("cancelPin");
+    const closePin = document.getElementById("closePin");
+
+    // Preview UI
+    const pvDlg = document.getElementById("pvDlg");
+    const pvClose = document.getElementById("pvClose");
+    const pvTitle = document.getElementById("pvTitle");
+    const pvUrl = document.getElementById("pvUrl");
+    const pvOpen = document.getElementById("pvOpen");
+    const pvFrame = document.getElementById("pvFrame");
+    const pvMsg = document.getElementById("pvMsg");
+    const pvIco = document.getElementById("pvIco");
+
+    function applyAuthUI(){
+      const authed = isAuthed();
+      lockBtn.textContent = authed ? "🔓 Desbloqueado" : "🔒 Bloqueado";
+      [toggleEdit, addLinkBtn, resetBtn].forEach(b=>{
+        b.classList.toggle("locked", !authed);
+      });
+      if(!authed){
+        editing = false;
+        document.body.classList.remove("editing");
+      }
+    }
+
+    function setEditing(on){
+      if(!isAuthed()){
+        toast("Bloqueado: ingresá PIN para editar.");
+        return;
+      }
+      editing = on;
+      document.body.classList.toggle("editing", editing);
+      toggleEdit.textContent = editing ? "✅ Listo" : "✏️ Editar";
+    }
+
+    function norm(s){ return (s || "").toString().trim().toLowerCase(); }
+    function matches(link, query){
+      if(!query) return true;
+      const hay = [
+        link.title, link.url, link.icon, (link.tags||[]).join(" "),
+        (state.categories.find(c=>c.id===link.cat)?.name || "")
+      ].join(" ");
+      return norm(hay).includes(norm(query));
+    }
+
+    function escapeHtml(str){
+      return (str||"").replace(/[&<>"']/g, m => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
+    function getDomain(url){
+      try{
+        const u = new URL(url);
+        return u.hostname;
+      }catch{
+        return "";
+      }
+    }
+    function faviconUrlFrom(link){
+      const domain = link.url ? getDomain(link.url) : "";
+      if(!domain) return "";
+      // Favicon automático (sin subir íconos)
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+    }
+
+    function openPreview(link){
+      const url = link.url || "";
+      if(!url){ toast("Este zócalo no tiene URL."); return; }
+
+      pvTitle.textContent = link.title || "Preview";
+      pvUrl.textContent = url;
+      pvOpen.href = url;
+
+      // Icono del preview
+      pvIco.classList.remove("has-fav");
+      pvIco.innerHTML = `<img class="fav" alt="" /><span class="letters">${(link.icon||"PV").toUpperCase().slice(0,3)}</span>`;
+      const fav = pvIco.querySelector(".fav");
+      const favUrl = faviconUrlFrom(link);
+      if(favUrl){
+        fav.src = favUrl;
+        fav.onload = ()=> pvIco.classList.add("has-fav");
+        fav.onerror = ()=> {};
+      }
+
+      pvMsg.style.display = "none";
+      pvFrame.style.display = "block";
+
+      // intentamos embed
+      pvFrame.src = url;
+
+      // si el sitio bloquea, suele quedar en blanco: mostramos mensaje a los 2.5s si no cargó algo visible
+      clearTimeout(window.__pvT);
+      window.__pvT = setTimeout(()=>{
+        // No hay forma 100% fiable de detectar X-Frame-Options desde JS.
+        // Este fallback evita que parezca "rota".
+        pvMsg.style.display = "block";
+      }, 2500);
+
+      pvDlg.showModal();
+    }
+    pvClose.addEventListener("click", ()=>{
+      pvDlg.close();
+      pvFrame.src = "about:blank";
+      pvMsg.style.display = "none";
+      pvFrame.style.display = "block";
+    });
+
+    function render(){
+      const query = q.value.trim();
+      grid.innerHTML = "";
+
+      // Widgets siempre al final, independientemente del orden guardado
+      const orderedCats = [...state.categories].sort((a,b)=>
+        a.id==="widgets" ? 1 : b.id==="widgets" ? -1 : 0
+      );
+      for(const cat of orderedCats){
+        const links = state.links.filter(l => l.cat === cat.id && matches(l, query));
+        if(query && links.length === 0) continue;
+
+        const section = document.createElement("section");
+        section.className = "section";
+        if(cat.id === "widgets") section.classList.add("full-width");
+
+        const header = document.createElement("div");
+        header.className = "section-header";
+
+        const title = document.createElement("div");
+        title.className = "section-title";
+        title.innerHTML = `📌 <span>${escapeHtml(cat.name)}</span>`;
+
+        const badge = document.createElement("span");
+        badge.className = "badge";
+        badge.textContent = `${links.length}`;
+
+        header.appendChild(title);
+        header.appendChild(badge);
+        section.appendChild(header);
+
+        const cards = document.createElement("div");
+        cards.className = "cards";
+
+        if(!query && links.length === 0){
+          const empty = document.createElement("div");
+          empty.style.color = "var(--muted)";
+          empty.style.fontSize = "12px";
+          empty.style.padding = "10px 2px";
+          empty.textContent = "Sin zócalos todavía.";
+          cards.appendChild(empty);
+        } else {
+          for(const link of links){
+            if(link.type === "widget_forecast"){
+              cards.appendChild(makeWidgetForecastCard(link));
+            } else if(link.type === "widget_metar"){
+              cards.appendChild(makeWidgetMetarCard(link));
+            } else if(link.type === "widget_smn_alertas"){
+              cards.appendChild(makeWidgetSmnAlertasCard(link));
+            } else {
+              cards.appendChild(makeCard(link));
+            }
+          }
+        }
+
+        section.appendChild(cards);
+        grid.appendChild(section);
+      }
+    }
+
+    function miniBtn(text, cls, title){
+      const b = document.createElement("button");
+      b.className = `mini ${cls}`;
+      b.type = "button";
+      b.textContent = text;
+      b.title = title;
+      return b;
+    }
+
+    function makeCard(link){
+      const a = document.createElement("a");
+      a.className = "card";
+      a.href = link.url || "#";
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+
+      const ico = document.createElement("div");
+      ico.className = "ico";
+
+      const fav = document.createElement("img");
+      fav.className = "fav";
+      fav.alt = "";
+      const letters = document.createElement("span");
+      letters.className = "letters";
+      letters.textContent = (link.icon || "GO").toUpperCase().slice(0,3);
+
+      ico.append(fav, letters);
+
+      // favicon automático si hay URL
+      const favUrl = faviconUrlFrom(link);
+      if(favUrl){
+        fav.src = favUrl;
+        fav.onload = ()=> ico.classList.add("has-fav");
+      }
+
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
+
+      const t = document.createElement("p");
+      t.className = "card-title";
+      t.textContent = link.title || "Sin título";
+
+      const u = document.createElement("p");
+      u.className = "card-url";
+      u.textContent = link.url || "(URL pendiente)";
+
+      meta.appendChild(t);
+      meta.appendChild(u);
+
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      const allChips = (link.tags||[]).slice(0,3);
+      for(const ch of allChips){
+        const s = document.createElement("span");
+        s.className = "chip";
+        s.textContent = ch;
+        chips.appendChild(s);
+      }
+      if(!allChips.length){
+        const s = document.createElement("span");
+        s.className = "chip";
+        s.textContent = state.categories.find(c=>c.id===link.cat)?.name || "—";
+        chips.appendChild(s);
+      }
+
+      const editbar = document.createElement("div");
+      editbar.className = "editbar";
+
+      const pv = miniBtn("👁", "warn", "Preview");
+      pv.onclick = (e)=>{ e.preventDefault(); openPreview(link); };
+
+      const up = miniBtn("↑", "good", "Subir");
+      up.onclick = (e)=>{ e.preventDefault(); move(link.id, -1); };
+
+      const down = miniBtn("↓", "good", "Bajar");
+      down.onclick = (e)=>{ e.preventDefault(); move(link.id, +1); };
+
+      const edit = miniBtn("Editar", "warn", "Editar");
+      edit.onclick = (e)=>{ e.preventDefault(); openEdit(link.id); };
+
+      const del = miniBtn("Borrar", "bad", "Borrar");
+      del.onclick = (e)=>{ e.preventDefault(); remove(link.id); };
+
+      editbar.append(pv, up, down, edit, del);
+
+      a.append(ico, meta, chips, editbar);
+
+      a.addEventListener("click", (e)=>{
+        // En modo edición, click abre edición (sin abrir pestaña)
+        if(editing && isAuthed() && !e.ctrlKey && !e.metaKey){
+          e.preventDefault();
+          openEdit(link.id);
+        }
+      });
+
+      // Shift+Click = preview rápido (aunque no esté editando)
+      a.addEventListener("auxclick", ()=>{});
+      a.addEventListener("click", (e)=>{
+        if(!editing && e.shiftKey){
+          e.preventDefault();
+          openPreview(link);
+        }
+      });
+
+      return a;
+    }
+
+    // ===== WIDGET Pronóstico =====
+    const WX_CFG = [
+      { key:"BA",  name:"Buenos Aires",       lat:-34.6037, lon:-58.3816, wxUrl:"https://weather.com/es-US/tiempo/hoy/l/Buenos+Aires+Buenos+Aires+Argentina" },
+      { key:"RES", name:"Resistencia",        lat:-27.4514, lon:-58.9867, wxUrl:"https://weather.com/es-US/tiempo/hoy/l/Resistencia+Chaco+Argentina" },
+      { key:"SDE", name:"Santiago del Estero",lat:-27.7951, lon:-64.2615, wxUrl:"https://weather.com/es-US/tiempo/hoy/l/Santiago+del+Estero+Santiago+del+Estero+Argentina" },
+    ];
+    function dowShort(dateStr){
+      const d = new Date(dateStr + "T12:00:00");
+      return d.toLocaleDateString("es-AR", { weekday:"short" }).replace(".", "");
+    }
+    function wxIcon(code){
+      if(code === 0) return "☀️";
+      if([1,2].includes(code)) return "🌤️";
+      if(code === 3) return "☁️";
+      if([45,48].includes(code)) return "🌫️";
+      if([51,53,55,56,57].includes(code)) return "🌦️";
+      if([61,63,65,66,67,80,81,82].includes(code)) return "🌧️";
+      if([71,73,75,77,85,86].includes(code)) return "🌨️";
+      if([95,96,99].includes(code)) return "⛈️";
+      return "🌡️";
+    }
+    async function fetchForecast5(lat, lon){
+      const url =
+        `https://api.open-meteo.com/v1/forecast` +
+        `?latitude=${encodeURIComponent(lat)}` +
+        `&longitude=${encodeURIComponent(lon)}` +
+        `&daily=temperature_2m_max,temperature_2m_min,weather_code` +
+        `&current=temperature_2m,apparent_temperature` +
+        `&forecast_days=5` +
+        `&timezone=auto`;
+      const r = await fetch(url, { cache:"no-store" });
+      if(!r.ok) throw new Error("WX fetch failed");
+      return r.json();
+    }
+    function renderCityForecast(city, data){
+      const nowT = data?.current?.temperature_2m;
+      const nowA = data?.current?.apparent_temperature;
+
+      const times = data?.daily?.time || [];
+      const tmax  = data?.daily?.temperature_2m_max || [];
+      const tmin  = data?.daily?.temperature_2m_min || [];
+      const wcode = data?.daily?.weather_code || [];
+
+      // Zócalo clicable → weather.com
+      const box = document.createElement("a");
+      box.className = "wxCity";
+      if(city.wxUrl){
+        box.href   = city.wxUrl;
+        box.target = "_blank";
+        box.rel    = "noopener noreferrer";
+        box.title  = `Ver pronóstico de ${city.name} en weather.com`;
+      }
+
+      const head = document.createElement("div");
+      head.className = "wxCityHead";
+
+      const name = document.createElement("div");
+      name.className = "wxCityName";
+      name.textContent = city.name;
+
+      const now = document.createElement("div");
+      now.className = "wxNow";
+      now.textContent = (typeof nowT === "number")
+        ? `Ahora: ${Math.round(nowT)}° (ST ${Math.round(nowA)}°)`
+        : "Ahora: —";
+
+      head.append(name, now);
+
+      const days = document.createElement("div");
+      days.className = "wxDays";
+
+      for(let i=0;i<5;i++){
+        const d = document.createElement("div");
+        d.className = "wxDay";
+
+        const dow = document.createElement("div");
+        dow.className = "wxDow";
+        dow.textContent = times[i] ? dowShort(times[i]) : "—";
+
+        const icon = document.createElement("div");
+        icon.className = "wxIcon";
+        icon.textContent = wxIcon(wcode[i]);
+
+        const temps = document.createElement("div");
+        temps.className = "wxTemps";
+        const hi = typeof tmax[i] === "number" ? Math.round(tmax[i]) : "—";
+        const lo = typeof tmin[i] === "number" ? Math.round(tmin[i]) : "—";
+        temps.textContent = `${hi}° / ${lo}°`;
+
+        d.append(dow, icon, temps);
+        days.appendChild(d);
+      }
+
+      const wxBadge = document.createElement("span");
+      wxBadge.className = "wxCityBadge";
+      wxBadge.textContent = "🌐 Ver en weather.com →";
+
+      box.append(head, days, wxBadge);
+      return box;
+    }
+
+    function makeWidgetForecastCard(link){
+      const wrap = document.createElement("div");
+      wrap.className = "card static";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "stretch";
+
+      const topLine = document.createElement("div");
+      topLine.style.display = "flex";
+      topLine.style.gap = "12px";
+      topLine.style.alignItems = "center";
+
+      const ico = document.createElement("div");
+      ico.className = "ico";
+      ico.innerHTML = `<span class="letters">${(link.icon || "WX").toUpperCase().slice(0,3)}</span>`;
+
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
+      const t = document.createElement("p");
+      t.className = "card-title";
+      t.textContent = link.title || "Pronóstico 5 días";
+      const u = document.createElement("p");
+      u.className = "card-url";
+      u.textContent = "BA • Resistencia • Santiago del Estero";
+      meta.append(t,u);
+
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      (link.tags||[]).slice(0,3).forEach(ch=>{
+        const s = document.createElement("span");
+        s.className = "chip";
+        s.textContent = ch;
+        chips.appendChild(s);
+      });
+
+      const editbar = document.createElement("div");
+      editbar.className = "editbar";
+      const up = miniBtn("↑", "good", "Subir");
+      up.onclick = (e)=>{ e.preventDefault(); move(link.id, -1); };
+      const down = miniBtn("↓", "good", "Bajar");
+      down.onclick = (e)=>{ e.preventDefault(); move(link.id, +1); };
+      const del = miniBtn("Borrar", "bad", "Borrar");
+      del.onclick = (e)=>{ e.preventDefault(); remove(link.id); };
+      editbar.append(up, down, del);
+
+      topLine.append(ico, meta, chips, editbar);
+
+      const widget = document.createElement("div");
+      widget.className = "widgetWrap";
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Cargando…";
+      const cities = document.createElement("div");
+      cities.className = "wxCities";
+      const updated = document.createElement("div");
+      updated.className = "small";
+      updated.textContent = "Actualizando…";
+      widget.append(status, cities, updated);
+
+      wrap.append(topLine, widget);
+
+      (async ()=>{
+        try{
+          status.textContent = "Actualizando…";
+          cities.innerHTML = "";
+          const results = await Promise.all(WX_CFG.map(c => fetchForecast5(c.lat, c.lon)));
+          results.forEach((data, i) => cities.appendChild(renderCityForecast(WX_CFG[i], data)));
+          status.textContent = "OK";
+          updated.textContent = `Última actualización: ${new Date().toLocaleString("es-AR")}`;
+        }catch(e){
+          status.textContent = "Error";
+          updated.textContent = "No se pudo cargar el pronóstico.";
+          console.warn(e);
+        }
+      })();
+
+      return wrap;
+    }
+
+    // ===== WIDGET METAR + Decoded (preview) =====
+    const METAR_CFG = [
+      { icao:"SARE", name:"Resistencia" },
+      { icao:"SABE", name:"Buenos Aires (AEP)" }
+    ];
+
+    function makeAwLinks(icao){
+      const decoded = `https://aviationweather.gov/data/metar/?ids=${icao}`;
+      const raw     = `https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw&hours=1&taf=off`;
+      return { decoded, raw };
+    }
+
+    async function fetchAwRaw(icao){
+      const url = `https://aviationweather.gov/api/data/metar?ids=${icao}&format=raw`;
+      const r = await fetch(url, { cache:"no-store" });
+      if(!r.ok) throw new Error("AW API fetch failed");
+      return r.text();
+    }
+
+    function metarBox(icao, name){
+      const box = document.createElement("div");
+      box.className = "metarBox";
+
+      const h = document.createElement("div");
+      h.className = "metarTitle";
+
+      const left = document.createElement("div");
+      left.innerHTML = `<strong>${name}</strong> <span class="badge">${icao}</span>`;
+
+      const btns = document.createElement("div");
+      btns.className = "metarBtns";
+      const links = makeAwLinks(icao);
+
+      const aDec = document.createElement("a");
+      aDec.href = links.decoded;
+      aDec.target = "_blank";
+      aDec.rel = "noopener noreferrer";
+      aDec.className = "badge badgeLink";
+      aDec.textContent = "Ver en AW";
+
+      const aRaw = document.createElement("a");
+      aRaw.href = links.raw;
+      aRaw.target = "_blank";
+      aRaw.rel = "noopener noreferrer";
+      aRaw.className = "badge badgeLink";
+      aRaw.textContent = "RAW API";
+
+      btns.append(aDec, aRaw);
+      h.append(left, btns);
+
+      const preRaw = document.createElement("pre");
+      preRaw.className = "mono";
+      preRaw.textContent = "RAW: cargando…";
+
+      const preDec = document.createElement("pre");
+      preDec.className = "mono";
+      preDec.style.marginTop = "8px";
+      preDec.textContent = "DECODED: abrir en “Decoded (preview)” para ver cada ítem explicado.";
+
+      const note = document.createElement("div");
+      note.className = "small";
+      note.textContent = "Si no carga RAW acá, el navegador lo está bloqueando: usá los previews.";
+
+      box.append(h, preRaw, preDec, note);
+      return { box, preRaw };
+    }
+
+    function makeWidgetMetarCard(link){
+      const wrap = document.createElement("div");
+      wrap.className = "card static";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "stretch";
+
+      const topLine = document.createElement("div");
+      topLine.style.display = "flex";
+      topLine.style.gap = "12px";
+      topLine.style.alignItems = "center";
+
+      const ico = document.createElement("div");
+      ico.className = "ico";
+      ico.innerHTML = `<span class="letters">${(link.icon || "MT").toUpperCase().slice(0,3)}</span>`;
+
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
+      const t = document.createElement("p");
+      t.className = "card-title";
+      t.textContent = link.title || "METAR + Decoded";
+      const u = document.createElement("p");
+      u.className = "card-url";
+      u.textContent = "SARE • SABE — aviationweather.gov/data/metar";
+      meta.append(t,u);
+
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      (link.tags||[]).slice(0,3).forEach(ch=>{
+        const s = document.createElement("span");
+        s.className = "chip";
+        s.textContent = ch;
+        chips.appendChild(s);
+      });
+
+      const editbar = document.createElement("div");
+      editbar.className = "editbar";
+      const up = miniBtn("↑", "good", "Subir");
+      up.onclick = (e)=>{ e.preventDefault(); move(link.id, -1); };
+      const down = miniBtn("↓", "good", "Bajar");
+      down.onclick = (e)=>{ e.preventDefault(); move(link.id, +1); };
+      const del = miniBtn("Borrar", "bad", "Borrar");
+      del.onclick = (e)=>{ e.preventDefault(); remove(link.id); };
+      editbar.append(up, down, del);
+
+      topLine.append(ico, meta, chips, editbar);
+
+      const widget = document.createElement("div");
+      widget.className = "widgetWrap";
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Cargando…";
+      const updated = document.createElement("div");
+      updated.className = "small";
+      updated.textContent = "Actualizando…";
+      const grid2 = document.createElement("div");
+      grid2.className = "metarGrid";
+
+      widget.append(status, grid2, updated);
+      wrap.append(topLine, widget);
+
+      (async ()=>{
+        try{
+          status.textContent = "Actualizando…";
+          grid2.innerHTML = "";
+
+          for(const st of METAR_CFG){
+            const ui = metarBox(st.icao, st.name);
+            grid2.appendChild(ui.box);
+
+            try{
+              const raw = await fetchAwRaw(st.icao);
+              ui.preRaw.textContent = "RAW:\n" + (raw.trim() || "—");
+            }catch{
+              ui.preRaw.textContent = "RAW:\n(No disponible por CORS) → abrí “Raw (preview)”.";
+            }
+          }
+
+          status.textContent = "OK";
+          updated.textContent = `Última actualización: ${new Date().toLocaleString("es-AR")}`;
+        }catch(e){
+          status.textContent = "Error";
+          updated.textContent = "No se pudo cargar METAR.";
+          console.warn(e);
+        }
+      })();
+
+      return wrap;
+    }
+
+    // ===== WIDGET SMN ALERTAS =====
+    const SMN_PROV_CFG = [
+      { key:"CABA", label:"CABA",                 search:["caba","buenos aires ciudad","autonoma","autónoma"] },
+      { key:"CHA",  label:"Chaco",                search:["chaco"] },
+      { key:"SDE",  label:"Santiago del Estero",  search:["santiago del estero"] },
+    ];
+    const SMN_STORE_KEY = "peter_soft_smn_prev_v1";
+
+    function smnNorm(s){
+      return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    }
+
+    async function fetchSmnData(){
+      const BASE  = "https://ws.smn.gob.ar/map_items/alert";
+      const PROXY = "https://api.allorigins.win/get?url=" + encodeURIComponent(BASE);
+
+      // Intento directo
+      try{
+        const ctrl = new AbortController();
+        const tid  = setTimeout(()=>ctrl.abort(), 9000);
+        const r    = await fetch(BASE, { cache:"no-store", signal:ctrl.signal });
+        clearTimeout(tid);
+        if(r.ok) return await r.json();
+      }catch(_){}
+
+      // Fallback proxy CORS
+      const ctrl2 = new AbortController();
+      const tid2  = setTimeout(()=>ctrl2.abort(), 14000);
+      try{
+        const r2 = await fetch(PROXY, { cache:"no-store", signal:ctrl2.signal });
+        clearTimeout(tid2);
+        if(!r2.ok) throw new Error("SMN proxy failed");
+        const wrapped = await r2.json();
+        return JSON.parse(wrapped.contents);
+      }finally{ clearTimeout(tid2); }
+    }
+
+    function parseSmnAlerts(raw){
+      let items = [];
+      if(Array.isArray(raw)){
+        items = raw;
+      }else if(raw?.features){
+        items = raw.features.map(f => f.properties || {});
+      }else if(raw?.alertas){
+        items = raw.alertas;
+      }else if(raw?.data && Array.isArray(raw.data)){
+        items = raw.data;
+      }
+      return items.map(it=>({
+        zona:  String(it.zona || it.zone || it.area || it.nombre || it.region || ""),
+        nivel: String(it.nivel || it.level || it.alert_type || it.tipo || "").toLowerCase(),
+        evento:String(it.evento || it.event || it.phenomena || it.fenomeno || it.nombre_evento || ""),
+        texto: String(it.texto || it.text || it.description || it.descripcion || ""),
+        inicio:String(it.inicio || it.start || it.valid_from || ""),
+        fin:   String(it.fin   || it.end   || it.valid_to   || ""),
+      }));
+    }
+
+    function matchProvAlerts(pc, alerts){
+      return alerts.filter(a=>{
+        const z = smnNorm(a.zona);
+        return pc.search.some(s => z.includes(smnNorm(s)));
+      });
+    }
+
+    function smnNivelClass(nivel){
+      const n = smnNorm(nivel);
+      if(n.includes("roj") || n.includes("red"))    return "rojo";
+      if(n.includes("nar") || n.includes("orange")) return "naranja";
+      if(n.includes("ama") || n.includes("yel"))    return "amarillo";
+      return "otro";
+    }
+    function smnNivelLabel(nivel){
+      const c = smnNivelClass(nivel);
+      if(c==="rojo")     return "🔴 ROJO";
+      if(c==="naranja")  return "🟠 NARANJA";
+      if(c==="amarillo") return "🟡 AMARILLO";
+      return "⚪ "+(nivel||"Desconocido");
+    }
+    function smnNivelSeverity(nivel){
+      const c = smnNivelClass(nivel);
+      if(c==="rojo")    return 3;
+      if(c==="naranja") return 2;
+      if(c==="amarillo")return 1;
+      return 0;
+    }
+
+    function playSmnBeep(isNew){
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        function beep(freq, t0, dur){
+          const osc = ctx.createOscillator();
+          const g   = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = "sine"; osc.frequency.value = freq;
+          g.gain.setValueAtTime(0.28, ctx.currentTime + t0);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t0 + dur);
+          osc.start(ctx.currentTime + t0);
+          osc.stop (ctx.currentTime + t0 + dur + 0.02);
+        }
+        if(isNew){
+          // Nueva alerta: triple beep urgente
+          beep(880, 0,    0.14);
+          beep(880, 0.2,  0.14);
+          beep(1100, 0.4, 0.28);
+        }else{
+          // Alerta actualizada: doble suave
+          beep(660, 0,   0.18);
+          beep(880, 0.25,0.14);
+        }
+      }catch(e){ console.warn("SMN audio:", e); }
+    }
+
+    const SMN_PROV_FLAGS = { CABA:"🏙️", CHA:"🌿", SDE:"🌵" };
+
+    function makeWidgetSmnAlertasCard(link){
+      const wrap = document.createElement("div");
+      wrap.className = "card static";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems    = "stretch";
+
+      // — Top bar (título + edición) —
+      const topLine = document.createElement("div");
+      topLine.style.cssText = "display:flex;gap:12px;align-items:center;";
+
+      const ico = document.createElement("div");
+      ico.className = "ico";
+      ico.innerHTML = `<span class="letters">${(link.icon||"SMN").toUpperCase().slice(0,3)}</span>`;
+
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
+      const t = document.createElement("p"); t.className = "card-title";
+      t.textContent = link.title || "Alertas SMN";
+      const u = document.createElement("p"); u.className = "card-url";
+      u.textContent = "Sistema de Alerta Temprana — CABA · Chaco · Sgo. del Estero";
+      meta.append(t, u);
+
+      const chips = document.createElement("div"); chips.className = "chips";
+      (link.tags||[]).slice(0,3).forEach(ch=>{
+        const s = document.createElement("span"); s.className = "chip"; s.textContent = ch;
+        chips.appendChild(s);
+      });
+
+      const editbar = document.createElement("div"); editbar.className = "editbar";
+      const up2 = miniBtn("↑","good","Subir");     up2.onclick  = e=>{ e.preventDefault(); move(link.id,-1); };
+      const dn2 = miniBtn("↓","good","Bajar");     dn2.onclick  = e=>{ e.preventDefault(); move(link.id,+1); };
+      const del2= miniBtn("Borrar","bad","Borrar"); del2.onclick = e=>{ e.preventDefault(); remove(link.id); };
+      editbar.append(up2,dn2,del2);
+      topLine.append(ico, meta, chips, editbar);
+
+      // — Widget body: Mini-página SAT —
+      const widget = document.createElement("div");
+      widget.className = "widgetWrap smnWrap";
+      widget.style.padding = "0";
+
+      const miniPage = document.createElement("div");
+      miniPage.className = "smnMiniPage";
+
+      // ── Cabecera institucional ──
+      const satHeader = document.createElement("div");
+      satHeader.className = "smnSatHeader";
+
+      const shield = document.createElement("div");
+      shield.className = "smnSatShield";
+      shield.textContent = "🌩️";
+
+      const titles = document.createElement("div");
+      titles.className = "smnSatTitles";
+      titles.innerHTML = `
+        <div class="smnSatTitle">Sistema de Alerta Temprana</div>
+        <div class="smnSatSubtitle">Servicio Meteorológico Nacional — Argentina</div>
+      `;
+
+      const satRight = document.createElement("div");
+      satRight.className = "smnSatRight";
+
+      const led = document.createElement("div");
+      led.className = "smnLed";
+
+      const ledRow = document.createElement("div");
+      ledRow.className = "smnSatLedRow";
+      const ledLabel = document.createElement("span");
+      ledLabel.className = "smnSatLedLabel";
+      ledLabel.textContent = "Estado";
+      ledRow.append(led, ledLabel);
+
+      const updEl = document.createElement("div");
+      updEl.className = "smnSatUpdated";
+      updEl.textContent = "Actualizando…";
+
+      satRight.append(ledRow, updEl);
+      satHeader.append(shield, titles, satRight);
+
+      // ── Barra de estado + leyenda ──
+      const satBar = document.createElement("div");
+      satBar.className = "smnSatBar";
+
+      const satStatus = document.createElement("div");
+      satStatus.className = "smnSatStatus";
+      satStatus.textContent = "Cargando…";
+
+      const legend = document.createElement("div");
+      legend.className = "smnSatLegend";
+      legend.innerHTML = `
+        <span class="smnLegItem"><span class="smnLegDot amarillo"></span> Amarillo</span>
+        <span class="smnLegItem"><span class="smnLegDot naranja"></span> Naranja</span>
+        <span class="smnLegItem"><span class="smnLegDot rojo"></span> Rojo</span>
+      `;
+      satBar.append(satStatus, legend);
+
+      // ── Cuerpo: provincia cards ──
+      const satBody = document.createElement("div");
+      satBody.className = "smnSatBody";
+
+      const provGrid = document.createElement("div");
+      provGrid.className = "smnProvinces";
+
+      for(const pc of SMN_PROV_CFG){
+        const box = document.createElement("div");
+        box.className = "smnProv";
+        box.id = `smnProv_${link.id}_${pc.key}`;
+        const nm = document.createElement("div");
+        nm.className = "smnProvName";
+        nm.innerHTML = `<span class="smnProvFlag">${SMN_PROV_FLAGS[pc.key]||"📍"}</span>${pc.label}`;
+        const msg = document.createElement("div");
+        msg.className = "smnNoAlert";
+        msg.textContent = "Cargando…";
+        box.append(nm, msg);
+        provGrid.appendChild(box);
+      }
+      satBody.appendChild(provGrid);
+
+      // ── Pie de página ──
+      const satFooter = document.createElement("div");
+      satFooter.className = "smnSatFooter";
+
+      const smnA = document.createElement("a");
+      smnA.href = "https://www.smn.gob.ar/alertas";
+      smnA.target = "_blank"; smnA.rel = "noopener noreferrer";
+      smnA.className = "smnLink";
+      smnA.innerHTML = "🔗 Ver mapa de alertas en smn.gob.ar →";
+
+      const copy = document.createElement("span");
+      copy.className = "smnSatCopy";
+      copy.textContent = "Se actualiza cada 5 min";
+
+      satFooter.append(smnA, copy);
+
+      // Ensamblar mini-página
+      miniPage.append(satHeader, satBar, satBody, satFooter);
+      widget.appendChild(miniPage);
+      wrap.append(topLine, widget);
+
+      // — Fetch + update —
+      let firstLoad = true;
+
+      async function updateSmn(){
+        try{
+          satStatus.textContent = "Actualizando…";
+          const raw = await fetchSmnData();
+          const all = parseSmnAlerts(raw);
+
+          let hasAny = false, maxSev = 0;
+          const currentSummary = {};
+
+          for(const pc of SMN_PROV_CFG){
+            const matched = matchProvAlerts(pc, all);
+            currentSummary[pc.key] = matched;
+            if(matched.length) hasAny = true;
+            matched.forEach(a=>{
+              const sv = smnNivelSeverity(a.nivel);
+              if(sv > maxSev) maxSev = sv;
+            });
+
+            // Render provincia card
+            const box = document.getElementById(`smnProv_${link.id}_${pc.key}`);
+            if(!box) continue;
+
+            // Reconstruir nombre con ícono
+            const nm = document.createElement("div");
+            nm.className = "smnProvName";
+            nm.innerHTML = `<span class="smnProvFlag">${SMN_PROV_FLAGS[pc.key]||"📍"}</span>${pc.label}`;
+            box.innerHTML = "";
+            box.appendChild(nm);
+
+            if(!matched.length){
+              const ok = document.createElement("div"); ok.className = "smnNoAlert";
+              ok.textContent = "✅ Sin alertas activas";
+              box.appendChild(ok);
+              box.style.borderColor = "";
+              box.style.background = "";
+            } else {
+              const provMaxSev = matched.reduce((m,a)=> Math.max(m, smnNivelSeverity(a.nivel)), 0);
+              box.style.borderColor = provMaxSev>=3
+                ? "rgba(239,68,68,.55)"
+                : provMaxSev>=2
+                  ? "rgba(249,115,22,.5)"
+                  : "rgba(234,179,8,.45)";
+              box.style.background = provMaxSev>=3
+                ? "rgba(239,68,68,.07)"
+                : provMaxSev>=2
+                  ? "rgba(249,115,22,.06)"
+                  : "rgba(234,179,8,.05)";
+
+              matched.forEach(a=>{
+                const cl   = smnNivelClass(a.nivel);
+                const item = document.createElement("div");
+                item.className = `smnAlertItem ${cl}`;
+
+                const niv = document.createElement("div"); niv.className = "smnAlertNivel";
+                niv.textContent = smnNivelLabel(a.nivel);
+
+                const ev  = document.createElement("div"); ev.className = "smnAlertEvento";
+                ev.textContent = a.evento || "Evento meteorológico";
+
+                const zon = document.createElement("div"); zon.className = "smnAlertZona";
+                if(a.zona) zon.textContent = "📍 " + a.zona;
+
+                // Rango horario si está disponible
+                if(a.inicio || a.fin){
+                  const ti = document.createElement("div"); ti.className = "smnAlertTiempo";
+                  const partes = [];
+                  if(a.inicio) partes.push("Desde: " + a.inicio);
+                  if(a.fin)    partes.push("Hasta: " + a.fin);
+                  ti.textContent = "🕐 " + partes.join(" — ");
+                  item.append(niv, ev, zon, ti);
+                } else {
+                  item.append(niv, ev, zon);
+                }
+
+                box.appendChild(item);
+              });
+            }
+          }
+
+          // LED + estado global
+          led.className = "smnLed " + (maxSev>=3 ? "alert" : maxSev>=1 ? "warn" : "ok");
+          satStatus.innerHTML = hasAny
+            ? `<span style="color:#ef4444;font-weight:800;">⚠️ Alertas activas en zonas monitorizadas</span>`
+            : `<span style="color:#22c55e;font-weight:800;">✅ Sin alertas activas en zonas monitorizadas</span>`;
+          updEl.textContent = `${new Date().toLocaleString("es-AR")}`;
+
+          // Detección de cambio y sonido
+          const curStr  = JSON.stringify(currentSummary);
+          const prevStr = localStorage.getItem(SMN_STORE_KEY);
+
+          if(!firstLoad && prevStr !== null && prevStr !== curStr){
+            const prevObj   = JSON.parse(prevStr);
+            const hadAlerts = Object.values(prevObj).some(arr=>arr.length>0);
+            playSmnBeep(!hadAlerts && hasAny);
+            toast(hasAny
+              ? "🔴 ¡Alerta SMN actualizada para zona monitorizada!"
+              : "✅ Alertas SMN: situación normalizada en zona monitorizada.");
+          }
+
+          localStorage.setItem(SMN_STORE_KEY, curStr);
+          firstLoad = false;
+
+        }catch(err){
+          satStatus.textContent = "⚠️ No se pudo obtener alertas SMN";
+          updEl.textContent  = "Error de conexión";
+          led.className = "smnLed";
+          console.warn("SMN widget error:", err);
+        }
+      }
+
+      updateSmn();
+      setInterval(updateSmn, 5 * 60 * 1000);
+
+      return wrap;
+    }
+
+    // ===== CRUD links =====
+    function fillCategoryOptions(){
+      fCat.innerHTML = "";
+      for(const c of state.categories){
+        const o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = c.name;
+        fCat.appendChild(o);
+      }
+    }
+
+    function openAdd(){
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      editId = null;
+      dlgTitle.textContent = "Agregar zócalo";
+      fillCategoryOptions();
+      fTitle.value = "";
+      fUrl.value = "";
+      fIcon.value = "";
+      fTags.value = "";
+      fCat.value = state.categories[0]?.id || "trabajo";
+      dlg.showModal();
+    }
+
+    function openEdit(id){
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      const link = state.links.find(l=>l.id===id);
+      if(!link) return;
+      editId = id;
+      dlgTitle.textContent = "Editar zócalo";
+      fillCategoryOptions();
+      fTitle.value = link.title || "";
+      fUrl.value = link.url || "";
+      fIcon.value = (link.icon || "").toUpperCase().slice(0,3);
+      fTags.value = (link.tags || []).join(", ");
+      fCat.value = link.cat || state.categories[0]?.id || "trabajo";
+      dlg.showModal();
+    }
+
+    function normalizeUrl(url){
+      url = (url||"").trim();
+      if(!url) return "";
+      if(!/^https?:\/\//i.test(url) && !url.startsWith("mailto:")){
+        url = "https://" + url;
+      }
+      return url;
+    }
+
+    function saveFromDialog(){
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      const title = fTitle.value.trim() || "Sin título";
+      const cat = fCat.value;
+      const url = normalizeUrl(fUrl.value);
+      const icon = (fIcon.value.trim() || "GO").toUpperCase().slice(0,3);
+      const tags = fTags.value.split(",").map(s=>s.trim()).filter(Boolean);
+
+      if(editId){
+        const link = state.links.find(l=>l.id===editId);
+        if(!link) return;
+        link.title = title;
+        link.cat = cat;
+        link.url = url;
+        link.icon = icon;
+        link.tags = tags;
+      } else {
+        state.links.unshift({ id: uid(), title, cat, url, icon, tags });
+      }
+
+      save();
+      render();
+      dlg.close();
+      toast("Guardado.");
+    }
+
+    function remove(id){
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      const link = state.links.find(l=>l.id===id);
+      if(!link) return;
+      if(!confirm(`Borrar: "${link.title}" ?`)) return;
+      state.links = state.links.filter(l=>l.id!==id);
+      save(); render();
+      toast("Borrado.");
+    }
+
+    function move(id, dir){
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      const idx = state.links.findIndex(l=>l.id===id);
+      if(idx < 0) return;
+      const cat = state.links[idx].cat;
+      const indices = state.links.map((l,i)=>({l,i})).filter(x=>x.l.cat===cat).map(x=>x.i);
+      const pos = indices.indexOf(idx);
+      const newPos = pos + dir;
+      if(newPos < 0 || newPos >= indices.length) return;
+      const a = indices[pos], b = indices[newPos];
+      const tmp = state.links[a]; state.links[a] = state.links[b]; state.links[b] = tmp;
+      save(); render();
+    }
+
+    // ===== PIN modal =====
+    function openPin(){
+      pinInput.value = "";
+      pinDlg.showModal();
+      setTimeout(()=>pinInput.focus(), 60);
+    }
+    function closePinDlg(){ pinDlg.close(); }
+
+    function checkPin(){
+      const v = (pinInput.value || "").trim();
+      if(v === EDIT_PIN){
+        setAuthed(true);
+        applyAuthUI();
+        closePinDlg();
+        toast("Edición desbloqueada.");
+      } else {
+        toast("PIN incorrecto.");
+        pinInput.value = "";
+        pinInput.focus();
+      }
+    }
+
+    // EVENTS
+    q.addEventListener("input", render);
+
+    lockBtn.addEventListener("click", ()=>{
+      if(isAuthed()){
+        setAuthed(false);
+        applyAuthUI();
+        toast("Edición bloqueada.");
+      } else {
+        openPin();
+      }
+    });
+
+    toggleEdit.addEventListener("click", ()=>{ setEditing(!editing); render(); });
+    addLinkBtn.addEventListener("click", ()=>{ setEditing(true); openAdd(); });
+
+    resetBtn.addEventListener("click", ()=>{
+      if(!isAuthed()){ toast("Bloqueado: ingresá PIN."); return; }
+      if(!confirm("Resetear a configuración inicial?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = load();
+      setEditing(false);
+      render();
+      toast("Reseteado.");
+    });
+
+    closeDlg.addEventListener("click", ()=> dlg.close());
+    cancelDlg.addEventListener("click", ()=> dlg.close());
+    saveDlg.addEventListener("click", saveFromDialog);
+
+    closePin.addEventListener("click", closePinDlg);
+    cancelPin.addEventListener("click", closePinDlg);
+    okPin.addEventListener("click", checkPin);
+    pinInput.addEventListener("keydown", (e)=>{ if(e.key === "Enter") checkPin(); });
+
+    // INIT
+    applyTheme();
+    applyAuthUI();
+    setEditing(false);
+    render();
+  </script>
+
+</body></html>
