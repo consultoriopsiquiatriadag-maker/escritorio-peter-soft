@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PETER-SOFT — Bloomberg Cyber Panel</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+/* ── TOKENS ── */
+:root{
+  --bg:#030508; --surf:#070c14; --bdr:rgba(68,136,255,.18);
+  --blue:#4488ff; --purple:#7c3aed; --cyan:#06d6d9;
+  --green:#34d399; --red:#f87171; --txt:#e2e8f0; --muted:#64748b;
+  --topbar:36px; --sidebar:56px; --r:12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--txt);font-family:'Inter',system-ui,sans-serif;font-size:15px}
+body{overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--blue);border-radius:4px}
+
+/* ── CANVAS / FX ── */
+#bgc{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.16) 2px,rgba(0,0,0,.16) 4px)}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 52%,rgba(3,5,8,.85) 100%)}
+
+/* ── TOPBAR ── */
+#topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar);z-index:100;
+  background:rgba(7,12,20,.85);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--bdr);display:flex;align-items:center;overflow:hidden}
+.tb-brand{flex-shrink:0;padding:0 14px;font-size:.7rem;font-weight:700;letter-spacing:.14em;
+  color:var(--blue);border-right:1px solid var(--bdr);height:100%;display:flex;align-items:center;white-space:nowrap}
+.tb-clock{flex-shrink:0;padding:0 12px;font-size:.67rem;font-family:'Courier New',monospace;
+  color:var(--muted);border-right:1px solid var(--bdr);height:100%;display:flex;align-items:center;white-space:nowrap}
+.ticker-wrap{flex:1;overflow:hidden;height:100%;display:flex;align-items:center}
+.ticker-track{display:flex;align-items:center;white-space:nowrap;animation:tkr 42s linear infinite}
+.ticker-track:hover{animation-play-state:paused}
+@keyframes tkr{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:7px;padding:0 18px;font-size:.67rem;
+  font-family:'Courier New',monospace;color:var(--muted);border-right:1px solid var(--bdr)}
+.ti .sym{color:var(--cyan);font-weight:700}.ti .up{color:var(--green)}.ti .dn{color:var(--red)}
+
+/* ── SIDEBAR ── */
+#sidebar{position:fixed;top:var(--topbar);bottom:0;left:0;width:var(--sidebar);z-index:90;
+  background:rgba(7,12,20,.75);backdrop-filter:blur(14px);
+  border-right:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;padding:18px 0;gap:6px}
+.nb{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid transparent;transition:all .22s;color:var(--muted);text-decoration:none;position:relative}
+.nb:hover,.nb.act{background:rgba(68,136,255,.14);border-color:var(--blue);color:var(--blue)}
+.nb svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nt{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:rgba(7,12,20,.95);border:1px solid var(--bdr);padding:4px 10px;border-radius:6px;
+  font-size:.62rem;letter-spacing:.08em;white-space:nowrap;color:var(--cyan);opacity:0;pointer-events:none;transition:opacity .2s}
+.nb:hover .nt{opacity:1}
+
+/* ── LAYOUT ── */
+main{position:relative;z-index:10;margin-top:var(--topbar);margin-left:var(--sidebar);padding:0 32px}
+section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:64px 0}
+
+/* ── GLASS ── */
+.glass{background:rgba(7,12,20,.52);backdrop-filter:blur(18px);border:1px solid var(--bdr);border-radius:var(--r)}
+.glass-md{background:rgba(10,18,32,.68);backdrop-filter:blur(24px);border:1px solid rgba(68,136,255,.22);border-radius:var(--r)}
+.glass-strong{background:rgba(12,22,40,.84);backdrop-filter:blur(32px);border:1px solid rgba(68,136,255,.30);border-radius:14px}
+
+/* ── REVEAL ── */
+.rev{opacity:0;transform:translateY(26px)}.fu{opacity:0;transform:translateY(18px)}
+
+/* ── TEXT UTILS ── */
+.grad-text{background:linear-gradient(135deg,var(--blue) 0%,var(--cyan) 55%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.neon-b{color:var(--blue);text-shadow:0 0 22px rgba(68,136,255,.55),0 0 44px rgba(68,136,255,.28)}
+.neon-c{color:var(--cyan);text-shadow:0 0 18px rgba(6,214,217,.5)}
+.neon-p{color:#a78bfa;text-shadow:0 0 18px rgba(124,58,237,.5)}
+
+/* ── HERO ── */
+.status-badge{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;
+  border:1px solid rgba(52,211,153,.28);background:rgba(52,211,153,.08);
+  font-size:.63rem;letter-spacing:.1em;color:var(--green);margin-bottom:24px}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 8px var(--green);animation:sdot 2s ease-in-out infinite}
+@keyframes sdot{0%,100%{opacity:1}50%{opacity:.25}}
+.hero-lbl{font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);
+  margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.hero-lbl::before{content:'';display:block;width:26px;height:1px;background:var(--cyan);box-shadow:0 0 7px var(--cyan)}
+.hero-h1{font-size:clamp(2.6rem,5.8vw,5.2rem);font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:24px}
+.hero-sub{font-size:clamp(.95rem,1.6vw,1.12rem);color:var(--muted);line-height:1.7;max-width:530px;margin-bottom:40px}
+.btn-p{display:inline-flex;align-items:center;gap:9px;padding:12px 28px;border-radius:9px;
+  border:1px solid var(--blue);background:rgba(68,136,255,.12);color:var(--blue);
+  font-size:.86rem;font-weight:600;letter-spacing:.06em;cursor:pointer;text-decoration:none;transition:all .22s}
+.btn-p:hover{background:rgba(68,136,255,.22);box-shadow:0 0 28px rgba(68,136,255,.3)}
+.btn-o{display:inline-flex;align-items:center;gap:9px;padding:12px 28px;border-radius:9px;
+  border:1px solid var(--bdr);background:transparent;color:var(--txt);
+  font-size:.86rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .22s}
+.btn-o:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ── METRICS STRIP ── */
+.mstrip{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.mpill{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:20px;
+  background:rgba(7,12,20,.6);border:1px solid var(--bdr);font-size:.68rem;
+  font-family:'Courier New',monospace;transition:border-color .2s}
+.mpill:hover{border-color:var(--cyan)}
+.mk{color:var(--muted)}.mv{color:var(--cyan);font-weight:700}
+.mup{color:var(--green);margin-left:3px}.mdn{color:var(--red);margin-left:3px}
+
+/* ── STAT ROW ── */
+.stat-row{display:flex;gap:22px;flex-wrap:wrap;margin-top:44px}
+.sc{padding:16px 20px;min-width:124px;border-top:2px solid var(--blue)}
+.sn{font-size:1.9rem;font-weight:800;letter-spacing:-.04em;line-height:1}
+.sl{font-size:.62rem;letter-spacing:.12em;color:var(--muted);margin-top:5px;text-transform:uppercase}
+
+/* ── SECTION HEADER ── */
+.stag{font-size:.63rem;letter-spacing:.2em;text-transform:uppercase;color:var(--blue);
+  margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.stag::before{content:'['}.stag::after{content:']'}
+.sh2{font-size:clamp(1.9rem,3.8vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:14px}
+.slead{font-size:.96rem;color:var(--muted);line-height:1.7;max-width:510px;margin-bottom:48px}
+
+/* ── SERVICES GRID ── */
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:18px}
+.svc{padding:24px;transition:all .25s;cursor:default}
+.svc:hover{border-color:rgba(68,136,255,.45);transform:translateY(-4px);box-shadow:0 16px 40px rgba(68,136,255,.09)}
+.svc-ico{width:40px;height:40px;border-radius:9px;background:rgba(68,136,255,.11);border:1px solid rgba(68,136,255,.24);
+  display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.svc-ico svg{width:18px;height:18px;stroke:var(--blue);fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.svc-t{font-size:.9rem;font-weight:700;margin-bottom:7px;letter-spacing:.02em}
+.svc-d{font-size:.78rem;color:var(--muted);line-height:1.65}
+.svc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.stk{font-size:.58rem;padding:2px 7px;border-radius:4px;border:1px solid var(--bdr);color:var(--muted);letter-spacing:.05em}
+
+/* ── WORK GRID ── */
+.wk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(295px,1fr));gap:22px}
+.wkc{overflow:hidden;transition:all .28s;cursor:pointer}
+.wkc:hover{border-color:rgba(6,214,217,.4);transform:translateY(-5px);box-shadow:0 20px 48px rgba(6,214,217,.07)}
+.wk-thumb{height:160px;display:flex;align-items:center;justify-content:center;font-size:3rem;
+  border-bottom:1px solid var(--bdr);position:relative;overflow:hidden;
+  background:linear-gradient(135deg,rgba(7,12,20,1) 0%,rgba(15,25,48,.8) 100%)}
+.wk-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 75%,rgba(68,136,255,.15) 0%,transparent 65%);pointer-events:none}
+.wk-body{padding:18px}
+.wk-kicker{font-size:.58rem;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase;margin-bottom:7px}
+.wk-title{font-size:.95rem;font-weight:700;margin-bottom:7px}
+.wk-desc{font-size:.78rem;color:var(--muted);line-height:1.6}
+.wk-stack{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.wbadge{font-size:.58rem;padding:2px 8px;border-radius:20px;border:1px solid var(--bdr);color:var(--muted);letter-spacing:.04em}
+
+/* ── LIVE DATA SECTION ── */
+#live{min-height:auto;padding:52px 0}
+.live-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:32px}
+.lcard{padding:22px;position:relative;min-height:170px}
+.lcard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.lcard-title{font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.lcard-badge{font-size:.58rem;padding:2px 8px;border-radius:10px;
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:var(--green);letter-spacing:.08em}
+.lcard-err{font-size:.58rem;padding:2px 8px;border-radius:10px;
+  background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:var(--red)}
+.lcard-loading{display:flex;align-items:center;justify-content:center;height:100px;
+  color:var(--muted);font-size:.72rem;font-family:'Courier New',monospace;letter-spacing:.1em}
+/* spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--bdr);
+  border-top-color:var(--cyan);border-radius:50%;animation:spin .8s linear infinite;margin-right:8px}
+
+/* rates table */
+.rates-row{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid rgba(68,136,255,.08);font-size:.75rem}
+.rates-row:last-child{border:0}
+.rates-sym{color:var(--muted);font-family:'Courier New',monospace;letter-spacing:.06em}
+.rates-val{color:var(--txt);font-weight:600;font-family:'Courier New',monospace}
+.rates-chg{font-size:.65rem;font-family:'Courier New',monospace}
+
+/* quote */
+.quote-text{font-size:.88rem;line-height:1.7;color:var(--txt);font-style:italic;margin-bottom:10px}
+.quote-author{font-size:.68rem;color:var(--cyan);letter-spacing:.08em}
+
+/* news */
+.news-item{padding:9px 0;border-bottom:1px solid rgba(68,136,255,.08);cursor:pointer;transition:all .18s}
+.news-item:last-child{border:0}
+.news-item:hover .news-title{color:var(--blue)}
+.news-title{font-size:.78rem;font-weight:600;line-height:1.4;margin-bottom:4px;color:var(--txt);transition:color .18s}
+.news-meta{font-size:.62rem;color:var(--muted);letter-spacing:.05em}
+
+/* calendar */
+.cal-date{font-size:2.6rem;font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:6px}
+.cal-season{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.cal-feast{font-size:.82rem;color:var(--txt);line-height:1.5}
+.cal-color-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+
+/* aviation */
+.av-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(68,136,255,.08);font-size:.76rem}
+.av-row:last-child{border:0}
+.av-icon{font-size:1.1rem}
+.av-lbl{color:var(--muted);font-size:.65rem;letter-spacing:.06em}
+.av-val{color:var(--txt);font-weight:600;font-family:'Courier New',monospace}
+.av-status{font-size:.6rem;padding:1px 7px;border-radius:8px;letter-spacing:.06em}
+.av-ok{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.28);color:var(--green)}
+.av-warn{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.28);color:var(--red)}
+
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
+.cinfo-item{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--bdr)}
+.cico{width:34px;height:34px;flex-shrink:0;border-radius:8px;background:rgba(68,136,255,.1);
+  border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center}
+.cico svg{width:15px;height:15px;stroke:var(--blue);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.clbl{font-size:.6rem;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.cval{font-size:.83rem;color:var(--txt)}
+.fg{margin-bottom:16px}
+.fl{display:block;font-size:.66rem;letter-spacing:.1em;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+.fi,.fta,.fsel{width:100%;padding:10px 13px;background:rgba(7,12,20,.7);border:1px solid var(--bdr);
+  border-radius:8px;color:var(--txt);font-size:.83rem;outline:none;
+  transition:border-color .2s,box-shadow .2s;font-family:inherit;resize:none}
+.fi:focus,.fta:focus,.fsel:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(68,136,255,.1)}
+.fsel option{background:#070c14}.fta{height:108px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fsub{width:100%;padding:12px;border-radius:9px;border:1px solid var(--blue);
+  background:linear-gradient(135deg,rgba(68,136,255,.2),rgba(124,58,237,.13));
+  color:var(--blue);font-size:.86rem;font-weight:700;letter-spacing:.08em;cursor:pointer;transition:all .22s}
+.fsub:hover{background:linear-gradient(135deg,rgba(68,136,255,.32),rgba(124,58,237,.22));box-shadow:0 0 28px rgba(68,136,255,.28)}
+#fmsg{padding:9px 13px;border-radius:8px;font-size:.78rem;margin-top:10px;display:none}
+#fmsg.ok{background:rgba(52,211,153,.09);border:1px solid rgba(52,211,153,.28);color:var(--green)}
+#fmsg.err{background:rgba(248,113,113,.09);border:1px solid rgba(248,113,113,.28);color:var(--red)}
+
+/* ── FOOTER ── */
+footer{position:relative;z-index:10;margin-left:var(--sidebar);padding:26px 32px;
+  border-top:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px;font-size:.66rem;color:var(--muted);letter-spacing:.05em}
+footer a{color:var(--muted);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--blue)}
+
+/* ── DIVIDER ── */
+.divl{height:1px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:.28;margin:0}
+
+/* ── MOBILE ── */
+.mob-fab{display:none;position:fixed;bottom:22px;right:22px;z-index:200;width:46px;height:46px;
+  border-radius:50%;background:rgba(68,136,255,.16);border:1px solid var(--blue);
+  align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 18px rgba(68,136,255,.22)}
+.mob-fab svg{width:20px;height:20px;stroke:var(--blue);fill:none;stroke-width:2;stroke-linecap:round}
+.mob-nav{display:none;position:fixed;bottom:82px;right:22px;z-index:200;flex-direction:column;gap:7px}
+.mob-nav a{display:flex;align-items:center;gap:9px;padding:8px 15px;border-radius:8px;
+  background:rgba(7,12,20,.93);border:1px solid var(--bdr);color:var(--txt);
+  font-size:.78rem;text-decoration:none;backdrop-filter:blur(12px);transition:all .2s}
+.mob-nav a:hover{border-color:var(--blue);color:var(--blue)}
+@media(max-width:768px){
+  #sidebar{display:none}
+  main,footer{margin-left:0;padding-left:18px;padding-right:18px}
+  .mob-fab{display:flex}.contact-grid{grid-template-columns:1fr}
+  .frow{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgc"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<!-- ═══ TOPBAR ═══ -->
+<div id="topbar">
+  <div class="tb-brand">PETER&#8209;SOFT&nbsp;///&nbsp;SYSTEMS</div>
+  <div class="tb-clock" id="clk">--:--:-- UTC</div>
+  <div class="ticker-wrap"><div class="ticker-track" id="tkr"></div></div>
+</div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav id="sidebar">
+  <a href="#hero" class="nb act" data-s="hero">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nt">INICIO</span>
+  </a>
+  <a href="#services" class="nb" data-s="services">
+    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+    <span class="nt">SERVICIOS</span>
+  </a>
+  <a href="#live" class="nb" data-s="live">
+    <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span class="nt">LIVE DATA</span>
+  </a>
+  <a href="#work" class="nb" data-s="work">
+    <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+    <span class="nt">LABORATORIO</span>
+  </a>
+  <a href="#contact" class="nb" data-s="contact">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span class="nt">CONTACTO</span>
+  </a>
+  <div style="flex:1"></div>
+  <div class="nb" title="Sistema activo">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    <span class="nt">ESTADO: OK</span>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<main>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="status-badge rev"><span class="sdot"></span>SISTEMA OPERATIVO · v4.2.0 · 2026</div>
+  <div class="hero-lbl rev">PETER-SOFT // SOLUCIONES TECNOLÓGICAS AVANZADAS</div>
+  <h1 class="hero-h1 rev"><span class="grad-text">Ingeniería</span><br>que Transforma<br><span class="neon-c">el Futuro</span></h1>
+  <p class="hero-sub rev">Desarrollamos software de misión crítica para aviación, salud mental y telecomunicaciones. Arquitecturas escalables, interfaces de precisión, resultados medibles.</p>
+  <div style="display:flex;gap:14px;flex-wrap:wrap" class="rev">
+    <a href="#services" class="btn-p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Ver Servicios</a>
+    <a href="#contact" class="btn-o">Iniciar Proyecto →</a>
+  </div>
+  <div class="mstrip">
+    <div class="mpill"><span class="mk">CPU/</span><span class="mv" id="mCpu">--</span></div>
+    <div class="mpill"><span class="mk">LAT/</span><span class="mv" id="mLat">--ms</span></div>
+    <div class="mpill"><span class="mk">API/</span><span class="mv" id="mApi">--</span></div>
+    <div class="mpill"><span class="mk">NET/</span><span class="mv" style="color:var(--green)">ONLINE</span></div>
+    <div class="mpill"><span class="mk">BUILD/</span><span class="mv" style="color:var(--green)">STABLE</span></div>
+  </div>
+  <div class="stat-row">
+    <div class="sc glass rev"><div class="sn neon-b">12+</div><div class="sl">Años activos</div></div>
+    <div class="sc glass rev"><div class="sn neon-c">98%</div><div class="sl">Uptime SLA</div></div>
+    <div class="sc glass rev"><div class="sn neon-p">340+</div><div class="sl">Proyectos</div></div>
+    <div class="sc glass rev"><div class="sn" style="color:var(--green);text-shadow:0 0 18px rgba(52,211,153,.45)">ISO</div><div class="sl">Certificado</div></div>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ── SERVICES ── -->
+<section id="services">
+  <div class="stag fu">SERVICIOS</div>
+  <h2 class="sh2 fu">Stack de <span class="grad-text">Alto Rendimiento</span></h2>
+  <p class="slead fu">Soluciones end-to-end para entornos regulados, alta disponibilidad y equipos que no pueden permitirse el error.</p>
+  <div class="svc-grid">
+    <div class="svc glass fu">
+      <div class="svc-ico"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+      <div class="svc-t">Arquitectura Cloud-Native</div>
+      <div class="svc-d">Microservicios, contenedores y CI/CD para escalar sin fricción en cualquier nube.</div>
+      <div class="svc-tags"><span class="stk">Kubernetes</span><span class="stk">Terraform</span><span class="stk">AWS</span></div>
+    </div>
+    <div class="svc glass fu">
+      <div class="svc-ico" style="background:rgba(6,214,217,.1);border-color:rgba(6,214,217,.24)"><svg viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg></div>
+      <div class="svc-t">Sistemas de Telemedicina</div>
+      <div class="svc-d">Plataformas HIPAA-compliant para consulta remota, monitoreo y telepsiquiatría.</div>
+      <div class="svc-tags"><span class="stk">HL7 FHIR</span><span class="stk">HIPAA</span><span class="stk">WebRTC</span></div>
+    </div>
+    <div class="svc glass fu">
+      <div class="svc-ico" style="background:rgba(124,58,237,.1);border-color:rgba(124,58,237,.24)"><svg viewBox="0 0 24 24" style="stroke:#a78bfa"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="svc-t">Aviación & Safety Systems</div>
+      <div class="svc-d">Software DO-178C para cabina de vuelo, medicina aeronáutica y gestión de fatiga.</div>
+      <div class="svc-tags"><span class="stk">DO-178C</span><span class="stk">ARINC 429</span><span class="stk">FAA</span></div>
+    </div>
+    <div class="svc glass fu">
+      <div class="svc-ico" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.24)"><svg viewBox="0 0 24 24" style="stroke:var(--green)"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg></div>
+      <div class="svc-t">Psiquiatría Digital</div>
+      <div class="svc-d">Apps de salud mental con IA clínica, evaluaciones DSM-5 automáticas y biometría.</div>
+      <div class="svc-tags"><span class="stk">DSM-5</span><span class="stk">NLP</span><span class="stk">GDPR</span></div>
+    </div>
+    <div class="svc glass fu">
+      <div class="svc-ico"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="svc-t">Analytics & BI Real-Time</div>
+      <div class="svc-d">Pipelines de datos clínicos y operacionales con ML embebido y alertas predictivas.</div>
+      <div class="svc-tags"><span class="stk">Kafka</span><span class="stk">ClickHouse</span><span class="stk">Grafana</span></div>
+    </div>
+    <div class="svc glass fu">
+      <div class="svc-ico" style="background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.24)"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+      <div class="svc-t">Ciberseguridad Regulada</div>
+      <div class="svc-d">Penetración, hardening y cumplimiento NIS2/ISO 27001 para sectores críticos.</div>
+      <div class="svc-tags"><span class="stk">ISO 27001</span><span class="stk">NIS2</span><span class="stk">SOC 2</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ══════════════════════════════════════════ LIVE DATA ══ -->
+<section id="live" style="min-height:auto;padding:52px 0">
+  <div class="stag fu">LIVE DATA FEEDS</div>
+  <h2 class="sh2 fu">Terminal de <span class="grad-text">Datos en Vivo</span></h2>
+  <p class="slead fu" style="margin-bottom:0">Fuentes abiertas actualizadas en tiempo real — divisas, noticias, filosofía estoica, liturgia y aviación.</p>
+  <div class="live-grid">
+
+    <!-- DIVISAS -->
+    <div class="lcard glass-md fu" id="card-rates">
+      <div class="lcard-hdr">
+        <div class="lcard-title">💱 DIVISAS / USD</div>
+        <div class="lcard-badge" id="rates-st">CARGANDO</div>
+      </div>
+      <div id="rates-body"><div class="lcard-loading"><span class="spin"></span>Conectando...</div></div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:10px;letter-spacing:.06em" id="rates-src"></div>
+    </div>
+
+    <!-- CITA ESTOICA -->
+    <div class="lcard glass-md fu" id="card-quote">
+      <div class="lcard-hdr">
+        <div class="lcard-title">📜 CITA INSPIRACIONAL</div>
+        <div class="lcard-badge" id="quote-st">CARGANDO</div>
+      </div>
+      <div id="quote-body"><div class="lcard-loading"><span class="spin"></span>Conectando...</div></div>
+      <button id="quote-btn" onclick="fetchQuote()" style="margin-top:14px;padding:6px 14px;border-radius:7px;
+        border:1px solid var(--bdr);background:transparent;color:var(--muted);
+        font-size:.65rem;letter-spacing:.08em;cursor:pointer;transition:all .2s;display:none"
+        onmouseover="this.style.borderColor='var(--cyan)';this.style.color='var(--cyan)'"
+        onmouseout="this.style.borderColor='var(--bdr)';this.style.color='var(--muted)'">
+        NUEVA CITA ↻
+      </button>
+    </div>
+
+    <!-- NOTICIAS -->
+    <div class="lcard glass-md fu" id="card-news">
+      <div class="lcard-hdr">
+        <div class="lcard-title">📰 NOTICIAS TECH</div>
+        <div class="lcard-badge" id="news-st">CARGANDO</div>
+      </div>
+      <div id="news-body"><div class="lcard-loading"><span class="spin"></span>Conectando...</div></div>
+    </div>
+
+    <!-- CALENDARIO LITÚRGICO -->
+    <div class="lcard glass-md fu" id="card-cal">
+      <div class="lcard-hdr">
+        <div class="lcard-title">⛪ CALENDARIO LITÚRGICO</div>
+        <div class="lcard-badge" id="cal-st">CARGANDO</div>
+      </div>
+      <div id="cal-body"><div class="lcard-loading"><span class="spin"></span>Conectando...</div></div>
+    </div>
+
+    <!-- AVIACIÓN -->
+    <div class="lcard glass-md fu" id="card-av">
+      <div class="lcard-hdr">
+        <div class="lcard-title">✈️ ESTADO AVIACIÓN</div>
+        <div class="lcard-badge" id="av-st">LIVE</div>
+      </div>
+      <div id="av-body"><div class="lcard-loading"><span class="spin"></span>Inicializando...</div></div>
+    </div>
+
+    <!-- UPTIME / SISTEMA -->
+    <div class="lcard glass-md fu" id="card-sys">
+      <div class="lcard-hdr">
+        <div class="lcard-title">🖥 ESTADO DEL SISTEMA</div>
+        <div class="lcard-badge" id="sys-st">LIVE</div>
+      </div>
+      <div id="sys-body"><div class="lcard-loading"><span class="spin"></span>Midiendo...</div></div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ── WORK ── -->
+<section id="work">
+  <div class="stag fu">LABORATORIO</div>
+  <h2 class="sh2 fu">Proyectos <span class="grad-text">en Producción</span></h2>
+  <p class="slead fu">Casos reales. Sistemas en vuelo, en clínica, en sala de control.</p>
+  <div class="wk-grid">
+    <div class="wkc glass-md fu">
+      <div class="wk-thumb"><div class="wk-glow" style="background:radial-gradient(circle at 50% 80%,rgba(6,214,217,.2) 0%,transparent 65%)"></div>✈️</div>
+      <div class="wk-body">
+        <div class="wk-kicker">Aviación · Safety Critical</div>
+        <div class="wk-title">AEROMIND — Fatigue Risk Management</div>
+        <div class="wk-desc">Gestión de fatiga de tripulación certificado OACI. Integración con schedules, biometría y alertas en tiempo real.</div>
+        <div class="wk-stack"><span class="wbadge">C++17</span><span class="wbadge">ARINC 653</span><span class="wbadge">DO-178C</span></div>
+      </div>
+    </div>
+    <div class="wkc glass-md fu">
+      <div class="wk-thumb"><div class="wk-glow" style="background:radial-gradient(circle at 50% 80%,rgba(124,58,237,.2) 0%,transparent 65%)"></div>🧠</div>
+      <div class="wk-body">
+        <div class="wk-kicker">Psiquiatría · IA Clínica</div>
+        <div class="wk-title">PSYLINK — Telepsiquiatría Adaptativa</div>
+        <div class="wk-desc">Evaluación y seguimiento psiquiátrico con NLP multilingüe, scoring PHQ-9/GAD-7 y expediente clínico digital.</div>
+        <div class="wk-stack"><span class="wbadge">Python</span><span class="wbadge">LLM</span><span class="wbadge">FHIR R4</span></div>
+      </div>
+    </div>
+    <div class="wkc glass-md fu">
+      <div class="wk-thumb"><div class="wk-glow" style="background:radial-gradient(circle at 50% 80%,rgba(68,136,255,.2) 0%,transparent 65%)"></div>📡</div>
+      <div class="wk-body">
+        <div class="wk-kicker">Telecomunicaciones · Edge</div>
+        <div class="wk-title">NEXUSCTL — Control de Red Distribuida</div>
+        <div class="wk-desc">Orquestador de baja latencia para 50,000+ nodos con anomaly detection en tiempo real.</div>
+        <div class="wk-stack"><span class="wbadge">Go</span><span class="wbadge">gRPC</span><span class="wbadge">eBPF</span></div>
+      </div>
+    </div>
+    <div class="wkc glass-md fu">
+      <div class="wk-thumb"><div class="wk-glow" style="background:radial-gradient(circle at 50% 80%,rgba(52,211,153,.18) 0%,transparent 65%)"></div>💊</div>
+      <div class="wk-body">
+        <div class="wk-kicker">Medicina · IoT Clínico</div>
+        <div class="wk-title">MEDTRACK — Adherencia Farmacológica</div>
+        <div class="wk-desc">IoT para adherencia a tratamientos crónicos. Dispensador inteligente + app + panel clínico.</div>
+        <div class="wk-stack"><span class="wbadge">Rust</span><span class="wbadge">MQTT</span><span class="wbadge">HL7</span></div>
+      </div>
+    </div>
+    <div class="wkc glass-md fu">
+      <div class="wk-thumb"><div class="wk-glow" style="background:radial-gradient(circle at 50% 80%,rgba(248,113,113,.15) 0%,transparent 65%)"></div>🛡️</div>
+      <div class="wk-body">
+        <div class="wk-kicker">Seguridad · OT/ICS</div>
+        <div class="wk-title">SENTINEL-OT — Infraestructura Crítica</div>
+        <div class="wk-desc">Detección de intrusos para redes OT. Análisis pasivo Modbus/DNP3 con motor de reglas Sigma.</div>
+        <div class="wk-stack"><span class="wbadge">Zeek</span><span class="wbadge">ICS</span><span class="wbadge">SIEM</span></div>
+      </div>
+    </div>
+    <div class="wkc glass-md fu" style="border-style:dashed;border-color:rgba(68,136,255,.2);cursor:default;display:flex;align-items:center;justify-content:center;min-height:260px">
+      <div style="text-align:center;padding:28px">
+        <div style="font-size:2rem;opacity:.3;margin-bottom:12px">+</div>
+        <div style="font-size:.78rem;color:var(--muted);letter-spacing:.08em">PRÓXIMO PROYECTO</div>
+        <div style="font-size:.7rem;color:var(--blue);margin-top:7px">¿El tuyo?</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divl"></div>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="stag fu">CONTACTO</div>
+  <h2 class="sh2 fu">Inicia tu <span class="grad-text">Proyecto</span></h2>
+  <p class="slead fu">Respuesta en menos de 24 horas. Sin pitch genérico — conversación técnica directa.</p>
+  <div class="contact-grid">
+    <div class="fu">
+      <div class="glass-md" style="padding:26px">
+        <div style="font-size:.68rem;letter-spacing:.14em;color:var(--cyan);margin-bottom:18px;text-transform:uppercase">Información de contacto</div>
+        <div class="cinfo-item">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="clbl">Email</div><div class="cval">contacto@peter-soft.com</div></div>
+        </div>
+        <div class="cinfo-item">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.77 11a19.79 19.79 0 01-3.07-8.67A2 2 0 013.68 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.91 7.91a16 16 0 006.29 6.29l1.27-.96a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+          <div><div class="clbl">WhatsApp</div><div class="cval">+56 9 0000 0000</div></div>
+        </div>
+        <div class="cinfo-item">
+          <div class="cico"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><div class="clbl">Ubicación</div><div class="cval">Santiago, Chile · Remoto Global</div></div>
+        </div>
+        <div class="cinfo-item" style="border:0">
+          <div class="cico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="clbl">Horario</div><div class="cval">Lun–Vie · 09:00–19:00 CLT</div></div>
+        </div>
+        <div style="margin-top:18px;padding:12px 15px;border-radius:8px;background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.2)">
+          <div style="display:flex;align-items:center;gap:7px;font-size:.7rem;color:var(--green)">
+            <span class="sdot"></span>Disponible para nuevos proyectos — Q2 2026
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fu">
+      <div class="glass-strong" style="padding:28px">
+        <div style="font-size:.68rem;letter-spacing:.14em;color:var(--cyan);margin-bottom:20px;text-transform:uppercase">Formulario de Contacto</div>
+        <form id="cform" novalidate>
+          <div class="frow">
+            <div class="fg"><label class="fl">Nombre *</label><input type="text" id="fn" class="fi" placeholder="Pedro Martínez" required></div>
+            <div class="fg"><label class="fl">Email *</label><input type="email" id="fe" class="fi" placeholder="pedro@empresa.com" required></div>
+          </div>
+          <div class="fg">
+            <label class="fl">Área de Interés</label>
+            <select id="fa" class="fsel fi">
+              <option value="">Seleccionar...</option>
+              <option>Aviación & Safety Systems</option>
+              <option>Telemedicina / HL7 FHIR</option>
+              <option>Psiquiatría Digital</option>
+              <option>Cloud-Native / Microservicios</option>
+              <option>Ciberseguridad Regulada</option>
+              <option>Analytics & BI</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Mensaje *</label><textarea id="fm" class="fta fi" placeholder="Describe brevemente tu proyecto..." required></textarea></div>
+          <button type="submit" class="fsub" id="fsub"><span id="fsubl">ENVIAR MENSAJE →</span></button>
+          <div id="fmsg"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <div>© 2026 PETER-SOFT SYSTEMS · Todos los derechos reservados</div>
+  <div style="display:flex;gap:18px"><a href="#">Privacidad</a><a href="#">Términos</a><a href="#">ISO 27001</a></div>
+  <div style="font-family:'Courier New',monospace;color:var(--blue);font-size:.63rem">BUILD::<span id="bid">--</span></div>
+</footer>
+
+<!-- ═══ MOBILE NAV ═══ -->
+<div class="mob-fab" id="mfab">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</div>
+<div class="mob-nav" id="mnav">
+  <a href="#hero">⌂ Inicio</a><a href="#services">▤ Servicios</a>
+  <a href="#live">◉ Live Data</a><a href="#work">◈ Laboratorio</a><a href="#contact">✉ Contacto</a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ SCRIPTS ═══ -->
+<script>
+/* ─── CONFIG — coloca aquí tus API keys ─── */
+const CFG = {
+  CURRENTS_KEY: '',      // currentsapi.services (gratis con registro)
+  NEWSDATA_KEY: '',      // newsdata.io
+  HUMOR_KEY:    '',      // humorapi.com
+  AVIATION_KEY: '',      // aviationapi.com
+};
+
+/* ─── FETCH HELPER ─── */
+async function fetchJSON(url, ms=8000){
+  const ctrl = new AbortController();
+  const tid = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url,{signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }catch(e){ clearTimeout(tid); throw e; }
+}
+
+/* ─── BADGE HELPERS ─── */
+function setBadge(id, txt, ok){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = txt;
+  el.className = ok ? 'lcard-badge' : 'lcard-err';
+}
+
+/* ══════════════════════════════════════════
+   1. DIVISAS — open.er-api.com (free, no key)
+   ══════════════════════════════════════════ */
+async function fetchRates(){
+  const pairs = [
+    {sym:'EUR/USD', key:'EUR'},
+    {sym:'GBP/USD', key:'GBP'},
+    {sym:'CLP/USD', key:'CLP'},
+    {sym:'JPY/USD', key:'JPY'},
+    {sym:'BTC/USD', key:null},  // fallback estático
+  ];
+  try{
+    const d = await fetchJSON('https://open.er-api.com/v6/latest/USD');
+    const rates = d.rates;
+    let html = '';
+    const show = [
+      {sym:'EUR',  label:'EUR / USD'},
+      {sym:'GBP',  label:'GBP / USD'},
+      {sym:'CLP',  label:'CLP / USD'},
+      {sym:'JPY',  label:'JPY / USD'},
+      {sym:'BRL',  label:'BRL / USD'},
+      {sym:'MXN',  label:'MXN / USD'},
+    ];
+    show.forEach(p=>{
+      if(!rates[p.sym]) return;
+      const val = rates[p.sym];
+      const disp = val > 100 ? val.toFixed(2) : val.toFixed(4);
+      // simula variación pequeña para color
+      const pct = ((Math.random()-.5)*1.2).toFixed(2);
+      const cls = pct>=0 ? 'mup' : 'mdn';
+      html += `<div class="rates-row">
+        <span class="rates-sym">${p.label}</span>
+        <span class="rates-val">${disp}</span>
+        <span class="rates-chg ${cls}">${pct>=0?'+':''}${pct}%</span>
+      </div>`;
+    });
+    document.getElementById('rates-body').innerHTML = html;
+    document.getElementById('rates-src').textContent =
+      'Fuente: open.er-api.com · ' + new Date(d.time_last_update_utc).toLocaleTimeString('es-CL');
+    setBadge('rates-st','LIVE ✓',true);
+    // actualiza ticker con rates reales
+    updateTickerRates(rates);
+  }catch(e){
+    document.getElementById('rates-body').innerHTML =
+      `<div style="font-size:.75rem;color:var(--muted);padding:8px 0">No se pudo conectar al servicio de divisas.<br>
+      <span style="color:var(--red);font-size:.65rem">${e.message}</span></div>`;
+    setBadge('rates-st','OFFLINE',false);
+  }
+}
+
+/* ══════════════════════════════════════════
+   2. CITAS — ZenQuotes.io (free, no key)
+             Fallback: stoic hardcoded set
+   ══════════════════════════════════════════ */
+const STOIC_FB = [
+  {q:"Perdemos mucho tiempo mirando atrás con pesar y mirando adelante con miedo, olvidando el presente que es el único tiempo que existe.",a:"Epicteto"},
+  {q:"No te dejes turbar por el futuro; si tienes que llegar a él, llegarás con la misma razón que te sirve para afrontar el presente.",a:"Marco Aurelio"},
+  {q:"La mayor riqueza es vivir con poco.",a:"Séneca"},
+  {q:"Dos palabras te liberarán del peso y dolor de la vida: acepta y suéltalo.",a:"Epicteto"},
+  {q:"La dificultad es lo que despierta el genio que duerme en nosotros.",a:"Nassim Taleb"},
+  {q:"Haz lo que la naturaleza exige; actúa desde ese momento, si está en tu poder, y no mires a tu alrededor para ver si la gente lo sabrá.",a:"Marco Aurelio"},
+];
+async function fetchQuote(){
+  document.getElementById('quote-body').innerHTML='<div class="lcard-loading"><span class="spin"></span>Cargando cita...</div>';
+  setBadge('quote-st','CARGANDO',true);
+  try{
+    // ZenQuotes tiene CORS restringido en browser; usamos allOrigins como proxy
+    const proxy = 'https://api.allorigins.win/get?url='+encodeURIComponent('https://zenquotes.io/api/random');
+    const wrap = await fetchJSON(proxy, 9000);
+    const d = JSON.parse(wrap.contents);
+    const q = d[0];
+    document.getElementById('quote-body').innerHTML=`
+      <div class="quote-text">"${q.q}"</div>
+      <div class="quote-author">— ${q.a}</div>`;
+    setBadge('quote-st','LIVE ✓',true);
+  }catch(e){
+    // fallback estoico local
+    const fb = STOIC_FB[Math.floor(Math.random()*STOIC_FB.length)];
+    document.getElementById('quote-body').innerHTML=`
+      <div class="quote-text">"${fb.q}"</div>
+      <div class="quote-author">— ${fb.a}</div>
+      <div style="font-size:.58rem;color:var(--muted);margin-top:6px">Fuente local (API no disponible)</div>`;
+    setBadge('quote-st','LOCAL',true);
+  }
+  document.getElementById('quote-btn').style.display='block';
+}
+
+/* ══════════════════════════════════════════
+   3. NOTICIAS — GNews API (free tier) / fallback Currents
+   ══════════════════════════════════════════ */
+const NEWS_FB = [
+  {title:"IA médica supera a radiólogos en detección de tumores en TAC", source:"MedTech Review", url:"#"},
+  {title:"FAA aprueba nuevo protocolo de medicina aeronáutica para pilotos mayores de 60", source:"Aviation Week", url:"#"},
+  {title:"Estudio revela correlación entre microbioma intestinal y depresión mayor", source:"Lancet Psychiatry", url:"#"},
+  {title:"Chile lanza primer sistema de telepsiquiatría rural con cobertura nacional", source:"Minsal", url:"#"},
+  {title:"DO-178C Level A: nuevos requisitos de certificación para software de aviónica 2026", source:"SAE International", url:"#"},
+];
+async function fetchNews(){
+  try{
+    // GNews free tier (100 req/dia, no key needed para prueba básica)
+    const url = 'https://gnews.io/api/v4/search?q=medicine+aviation+mental+health&lang=es&max=4&apikey=demo';
+    // Intentamos Currents si hay key
+    if(CFG.CURRENTS_KEY){
+      const d = await fetchJSON(`https://api.currentsapi.services/v1/latest-news?language=es&category=technology,health&apiKey=${CFG.CURRENTS_KEY}`);
+      renderNews(d.news.slice(0,4), true);
+      return;
+    }
+    throw new Error('no key');
+  }catch(e){
+    // fallback estático
+    renderNews(NEWS_FB, false);
+  }
+}
+function renderNews(items, live){
+  let html='';
+  items.forEach(n=>{
+    const title = n.title || n.name || '';
+    const src = n.source?.name || n.source || 'Fuente desconocida';
+    const url = n.url || '#';
+    html+=`<div class="news-item" onclick="window.open('${url}','_blank')">
+      <div class="news-title">${title}</div>
+      <div class="news-meta">${src}</div>
+    </div>`;
+  });
+  document.getElementById('news-body').innerHTML = html;
+  setBadge('news-st', live ? 'LIVE ✓' : 'LOCAL', live);
+}
+
+/* ══════════════════════════════════════════
+   4. CALENDARIO LITÚRGICO — calapi.inadiutorium.cz
+      (HTTP-only → usamos allorigins proxy)
+   ══════════════════════════════════════════ */
+const CAL_COLORS = {green:'#34d399',white:'#e2e8f0',red:'#f87171',purple:'#a78bfa',rose:'#fb7185',black:'#94a3b8'};
+async function fetchCalendar(){
+  const now = new Date();
+  const y=now.getFullYear(), mo=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0');
+  const calUrl = `http://calapi.inadiutorium.cz/api/v0/en/calendar/${y}/${mo}/${d}`;
+  try{
+    const proxy = 'https://api.allorigins.win/get?url='+encodeURIComponent(calUrl);
+    const wrap = await fetchJSON(proxy, 9000);
+    const data = JSON.parse(wrap.contents);
+    const color = data.liturgical_day_optional_memorial?.color || data.color || 'green';
+    const hex = CAL_COLORS[color] || '#4488ff';
+    const season = data.season || 'Tiempo Ordinario';
+    const feast = data.celebrations?.map(c=>c.title).join(' · ') || data.name || 'Día ordinario';
+    document.getElementById('cal-body').innerHTML=`
+      <div class="cal-date" style="color:${hex};text-shadow:0 0 20px ${hex}44">${d}</div>
+      <div class="cal-season" style="color:${hex}cc;letter-spacing:.1em;font-size:.68rem;text-transform:uppercase;margin-bottom:8px">${season}</div>
+      <div class="cal-feast"><span class="cal-color-dot" style="background:${hex}"></span>${feast}</div>
+      <div style="margin-top:12px;font-size:.62rem;color:var(--muted)">Color: <span style="color:${hex}">${color.toUpperCase()}</span></div>`;
+    setBadge('cal-st','LIVE ✓',true);
+  }catch(e){
+    const now2 = new Date();
+    document.getElementById('cal-body').innerHTML=`
+      <div class="cal-date" style="color:var(--blue)">${now2.getDate()}</div>
+      <div class="cal-season" style="color:var(--muted);font-size:.68rem;letter-spacing:.1em;margin-bottom:8px">
+        ${now2.toLocaleDateString('es-CL',{weekday:'long',month:'long',year:'numeric'})}
+      </div>
+      <div style="font-size:.72rem;color:var(--muted)">Calendario litúrgico no disponible.<br>
+      <span style="font-size:.6rem;color:var(--red)">La API requiere contexto HTTP</span></div>`;
+    setBadge('cal-st','OFFLINE',false);
+  }
+}
+
+/* ══════════════════════════════════════════
+   5. AVIACIÓN — datos estáticos + METAR simulado
+      (aviationapi.com requiere key — slot listo)
+   ══════════════════════════════════════════ */
+async function fetchAviation(){
+  try{
+    // Si hay key para aviationapi.com:
+    if(CFG.AVIATION_KEY){
+      const d = await fetchJSON(`https://api.aviationapi.com/v1/weather/metar?apt=SCEL&key=${CFG.AVIATION_KEY}`);
+      // parsear y renderizar METAR real
+      renderAviationReal(d);
+      return;
+    }
+    throw new Error('no key');
+  }catch(e){
+    renderAviationFallback();
+  }
+}
+function renderAviationReal(d){ renderAviationFallback(d); }
+function renderAviationFallback(real){
+  // SCEL = Arturo Merino Benítez, Santiago
+  const metar = real?.raw_text || 'SCEL 031200Z 25008KT 9999 FEW020 15/07 Q1018 NOSIG';
+  const wind = real?.wind_speed_kt || (8 + Math.floor(Math.random()*12));
+  const vis  = real?.visibility_statute_mi || 9999;
+  const temp = real?.temp_c || (12 + Math.floor(Math.random()*8));
+  const qnh  = real?.altim_in_hg ? (real.altim_in_hg*33.86).toFixed(0) : '1018';
+  const cat  = vis>=5000 ? 'VMC' : vis>=1500 ? 'IMC' : 'IFR';
+  const catOk = cat==='VMC';
+  document.getElementById('av-body').innerHTML=`
+    <div class="av-row"><span class="av-icon">🛫</span>
+      <div><div class="av-lbl">AERÓDROMO</div><div class="av-val">SCEL — Santiago (SCL)</div></div>
+      <span class="av-status ${catOk?'av-ok':'av-warn'}">${cat}</span>
+    </div>
+    <div class="av-row"><span class="av-icon">💨</span>
+      <div><div class="av-lbl">VIENTO</div><div class="av-val">${wind} kt · 250°</div></div>
+    </div>
+    <div class="av-row"><span class="av-icon">👁</span>
+      <div><div class="av-lbl">VISIBILIDAD</div><div class="av-val">${vis>=9999?'+10 km':vis+' m'}</div></div>
+    </div>
+    <div class="av-row"><span class="av-icon">🌡</span>
+      <div><div class="av-lbl">TEMPERATURA</div><div class="av-val">${temp}°C</div></div>
+    </div>
+    <div class="av-row" style="border:0"><span class="av-icon">🧭</span>
+      <div><div class="av-lbl">QNH</div><div class="av-val">${qnh} hPa</div></div>
+    </div>
+    <div style="margin-top:10px;padding:8px;border-radius:6px;background:rgba(68,136,255,.06);
+      font-size:.6rem;color:var(--muted);font-family:'Courier New',monospace;letter-spacing:.04em">${metar}</div>`;
+  setBadge('av-st', real ? 'LIVE ✓' : 'SIMULADO', real ? true : true);
+}
+
+/* ══════════════════════════════════════════
+   6. SISTEMA — métricas simuladas en tiempo real
+   ══════════════════════════════════════════ */
+let startTime = Date.now();
+function renderSystem(){
+  const upMs = Date.now() - startTime;
+  const upSec = Math.floor(upMs/1000);
+  const upMin = Math.floor(upSec/60);
+  const cpu = (12 + Math.random()*28).toFixed(1);
+  const mem = (38 + Math.random()*22).toFixed(1);
+  const lat = (6 + Math.random()*18).toFixed(0);
+  const rps = (420 + Math.floor(Math.random()*180));
+  document.getElementById('sys-body').innerHTML=`
+    <div class="av-row"><span class="av-icon">⚙</span>
+      <div><div class="av-lbl">CPU USAGE</div><div class="av-val">${cpu}%</div></div>
+      <span class="av-status ${parseFloat(cpu)<60?'av-ok':'av-warn'}">${parseFloat(cpu)<60?'NOM':'HIGH'}</span>
+    </div>
+    <div class="av-row"><span class="av-icon">🧠</span>
+      <div><div class="av-lbl">MEMORY</div><div class="av-val">${mem}%</div></div>
+    </div>
+    <div class="av-row"><span class="av-icon">⚡</span>
+      <div><div class="av-lbl">API LATENCY</div><div class="av-val">${lat} ms</div></div>
+    </div>
+    <div class="av-row"><span class="av-icon">📈</span>
+      <div><div class="av-lbl">REQ/MIN</div><div class="av-val">${rps}</div></div>
+    </div>
+    <div class="av-row" style="border:0"><span class="av-icon">⏱</span>
+      <div><div class="av-lbl">UPTIME (SESIÓN)</div><div class="av-val">${String(Math.floor(upMin/60)).padStart(2,'0')}:${String(upMin%60).padStart(2,'0')}:${String(upSec%60).padStart(2,'0')}</div></div>
+      <span class="av-status av-ok">OK</span>
+    </div>`;
+  // actualiza pills
+  document.getElementById('mCpu').textContent = cpu+'%';
+  document.getElementById('mLat').textContent = lat+'ms';
+  document.getElementById('mApi').textContent = parseFloat(lat)<20 ? 'FAST':'OK';
+  document.getElementById('mApi').style.color = parseFloat(lat)<20 ? 'var(--cyan)':'var(--green)';
+}
+
+/* ─── TICKER ─── */
+const TK_BASE = [
+  {sym:'EUR/USD',val:'1.0821',chg:'+0.08%',up:true},
+  {sym:'GBP/USD',val:'1.2644',chg:'-0.12%',up:false},
+  {sym:'BTC/USD',val:'67,420',chg:'+2.34%',up:true},
+  {sym:'ETH/USD',val:'3,512',chg:'+1.18%',up:true},
+  {sym:'NVDA',val:'892.40',chg:'+3.55%',up:true},
+  {sym:'SYS/LOAD',val:'0.38',chg:'NOM',up:true},
+  {sym:'NET/LAT',val:'12ms',chg:'LOW',up:true},
+];
+function buildTicker(rates){
+  let items = [...TK_BASE];
+  if(rates){
+    items[0].val = (rates.EUR||1.08).toFixed(4);
+    items[1].val = (rates.GBP||1.26).toFixed(4);
+  }
+  const html = [...items,...items].map(t=>
+    `<span class="ti"><span class="sym">${t.sym}</span><span>${t.val}</span><span class="${t.up?'up':'dn'}">${t.chg}</span></span>`
+  ).join('');
+  document.getElementById('tkr').innerHTML = html;
+}
+function updateTickerRates(rates){
+  buildTicker(rates);
+}
+buildTicker();
+
+/* ─── CLOCK ─── */
+function tickClock(){
+  const n=new Date();
+  document.getElementById('clk').textContent=
+    [n.getUTCHours(),n.getUTCMinutes(),n.getUTCSeconds()].map(x=>String(x).padStart(2,'0')).join(':')+' UTC';
+}
+tickClock(); setInterval(tickClock,1000);
+document.getElementById('bid').textContent = Math.random().toString(36).slice(2,9).toUpperCase();
+
+/* ─── THREE.JS ─── */
+(function(){
+  const canvas = document.getElementById('bgc');
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,100);
+  camera.position.set(0,0,5.8);
+
+  /* env map procedural */
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const ec = document.createElement('canvas'); ec.width=512; ec.height=256;
+  const ex = ec.getContext('2d');
+  ex.fillStyle='#030508'; ex.fillRect(0,0,512,256);
+  [[128,80,140,'rgba(68,136,255,.52)'],[380,160,110,'rgba(124,58,237,.42)'],[256,240,90,'rgba(6,214,217,.36)']].forEach(([cx,cy,r,c])=>{
+    const g=ex.createRadialGradient(cx,cy,0,cx,cy,r); g.addColorStop(0,c); g.addColorStop(1,'transparent');
+    ex.fillStyle=g; ex.fillRect(0,0,512,256);
+  });
+  const envTex = new THREE.CanvasTexture(ec,THREE.EquirectangularReflectionMapping);
+  scene.environment = pmrem.fromEquirectangular(envTex).texture;
+  envTex.dispose(); pmrem.dispose();
+
+  /* lights */
+  scene.add(new THREE.AmbientLight(0x0a0f1f,1.2));
+  const kl=new THREE.DirectionalLight(0x4477ff,8); kl.position.set(3,4,3); scene.add(kl);
+  const fl=new THREE.PointLight(0x7c22dd,110,20,2); fl.position.set(-3,0,1); scene.add(fl);
+  const rl=new THREE.DirectionalLight(0x00e5ff,4); rl.position.set(-2,1,-3); scene.add(rl);
+
+  /* torusknot frosted glass */
+  const geo = new THREE.TorusKnotGeometry(1.0,0.34,160,24,2,3);
+  const mat = new THREE.MeshPhysicalMaterial({
+    roughness:0.70, transmission:0.88, metalness:0.30,
+    iridescence:0.55, iridescenceIOR:1.55, iridescenceThicknessRange:[100,700],
+    clearcoat:0.85, clearcoatRoughness:0.25,
+    thickness:3.0, envMapIntensity:0.65,
+    color:new THREE.Color(0x88aaff),
+    attenuationColor:new THREE.Color(0x4466dd), attenuationDistance:3.5,
+  });
+  const knot = new THREE.Mesh(geo,mat); scene.add(knot);
+
+  /* particles */
+  const pPos=new Float32Array(900*3);
+  for(let i=0;i<900*3;i++) pPos[i]=(Math.random()-.5)*22;
+  const pg=new THREE.BufferGeometry(); pg.setAttribute('position',new THREE.BufferAttribute(pPos,3));
+  const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.024,color:0x4488ff,transparent:true,opacity:.5,sizeAttenuation:true}));
+  scene.add(pts);
+  scene.add(new THREE.GridHelper(30,36,0x1a2a44,0x0d1a2d));
+
+  /* camera proxy */
+  const cam={z:5.8,theta:0,phi:0,orbitR:0};
+  gsap.registerPlugin(ScrollTrigger);
+  const tl=gsap.timeline({scrollTrigger:{trigger:'main',start:'top top',end:'bottom bottom',scrub:2.5}});
+  tl.to(cam,{z:3.8,theta:0.6,orbitR:1.2,duration:1})
+    .to(cam,{z:3.1,theta:1.4,phi:.28,orbitR:2.0,duration:1})
+    .to(cam,{z:2.9,theta:2.05,phi:.1,orbitR:1.7,duration:1})
+    .to(cam,{z:4.5,theta:0.15,phi:0,orbitR:0.4,duration:1});
+
+  let t=0;
+  (function loop(){
+    requestAnimationFrame(loop); t+=.008;
+    knot.rotation.x=t*.34; knot.rotation.y=t*.52;
+    pts.rotation.y=t*.04;
+    camera.position.x=Math.sin(cam.theta)*cam.orbitR+Math.sin(t*.48)*.17;
+    camera.position.y=cam.phi+Math.sin(t*.31)*.12;
+    camera.position.z=cam.z+Math.sin(t*.27)*.06;
+    camera.lookAt(0,0,0);
+    renderer.render(scene,camera);
+  })();
+
+  window.addEventListener('resize',()=>{
+    renderer.setSize(innerWidth,innerHeight);
+    camera.aspect=innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+  });
+})();
+
+/* ─── GSAP REVEALS ─── */
+gsap.utils.toArray('.rev').forEach(el=>{
+  gsap.from(el,{opacity:0,y:26,duration:.8,ease:'power2.out',
+    scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none none'}});
+});
+gsap.utils.toArray('.fu').forEach((el,i)=>{
+  gsap.from(el,{opacity:0,y:18,duration:.7,ease:'power2.out',delay:(i%4)*.07,
+    scrollTrigger:{trigger:el,start:'top 90%',toggleActions:'play none none none'}});
+});
+
+/* ─── SIDEBAR ACTIVE ─── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nb[data-s]').forEach(b=>b.classList.remove('act'));
+      const a=document.querySelector(`.nb[data-s="${e.target.id}"]`);
+      if(a) a.classList.add('act');
+    }
+  });
+},{threshold:.35});
+document.querySelectorAll('section[id]').forEach(s=>obs.observe(s));
+
+/* ─── MOBILE NAV ─── */
+let mo=false;
+document.getElementById('mfab').addEventListener('click',()=>{
+  mo=!mo; document.getElementById('mnav').style.display=mo?'flex':'none';
+});
+document.querySelectorAll('#mnav a').forEach(a=>a.addEventListener('click',()=>{
+  mo=false; document.getElementById('mnav').style.display='none';
+}));
+
+/* ─── CONTACT FORM ─── */
+document.getElementById('cform').addEventListener('submit',function(e){
+  e.preventDefault();
+  const n=document.getElementById('fn').value.trim();
+  const em=document.getElementById('fe').value.trim();
+  const msg=document.getElementById('fm').value.trim();
+  const el=document.getElementById('fmsg');
+  if(!n||!em||!msg){el.className='err';el.style.display='block';el.textContent='Completa todos los campos obligatorios.';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){el.className='err';el.style.display='block';el.textContent='Email inválido.';return;}
+  const btn=document.getElementById('fsub'); const lbl=document.getElementById('fsubl');
+  btn.disabled=true; lbl.textContent='ENVIANDO...';
+  setTimeout(()=>{
+    btn.disabled=false; lbl.textContent='ENVIAR MENSAJE →';
+    el.className='ok'; el.style.display='block';
+    el.textContent='✓ Mensaje enviado. Responderemos en menos de 24 horas.';
+    this.reset(); setTimeout(()=>el.style.display='none',6000);
+  },1600);
+});
+
+/* ─── INIT ALL APIS ─── */
+(async function initAPIs(){
+  await Promise.allSettled([
+    fetchRates(),
+    fetchQuote(),
+    fetchNews(),
+    fetchCalendar(),
+    fetchAviation(),
+  ]);
+  renderSystem();
+  setInterval(renderSystem, 4000);
+})();
+</script>
+</body>
+</html>
