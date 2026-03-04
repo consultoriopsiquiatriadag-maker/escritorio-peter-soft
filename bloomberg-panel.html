@@ -250,9 +250,101 @@ footer a:hover{color:var(--blue)}
   .mob-fab{display:flex}.contact-grid{grid-template-columns:1fr}
   .frow{grid-template-columns:1fr}
 }
+
+/* ══ DAY 3 — MICRO-INTERACTIONS ══ */
+
+/* scroll progress bar */
+#scroll-prog{
+  position:fixed;top:var(--topbar);left:0;right:0;z-index:200;
+  height:2px;background:transparent;pointer-events:none;
+}
+#scroll-prog-bar{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--cyan),var(--purple));
+  box-shadow:0 0 10px var(--cyan);
+  transition:width .06s linear;
+}
+
+/* cursor follower */
+#cfx{
+  position:fixed;pointer-events:none;z-index:999;
+  width:22px;height:22px;border-radius:50%;
+  border:1px solid rgba(6,214,217,.7);
+  transform:translate(-50%,-50%);
+  transition:width .18s,height .18s,border-color .18s;
+  mix-blend-mode:screen;
+}
+#cfx2{
+  position:fixed;pointer-events:none;z-index:998;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--cyan);
+  transform:translate(-50%,-50%);
+  box-shadow:0 0 8px var(--cyan);
+}
+@media(hover:none){#cfx,#cfx2{display:none}}
+
+/* section scan sweep */
+.scan-sweep{
+  position:absolute;left:0;right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent 0%,var(--cyan) 50%,transparent 100%);
+  opacity:0;pointer-events:none;
+  box-shadow:0 0 12px var(--cyan);
+}
+
+/* stat counter glow on reveal */
+@keyframes countGlow{
+  0%{text-shadow:0 0 8px currentColor}
+  50%{text-shadow:0 0 28px currentColor,0 0 52px currentColor}
+  100%{text-shadow:0 0 12px currentColor}
+}
+.sn.counting{animation:countGlow .6s ease-in-out}
+
+/* service card — neon border trace on hover */
+.svc{position:relative;overflow:hidden}
+.svc::before{
+  content:'';position:absolute;inset:0;border-radius:var(--r);
+  background:linear-gradient(135deg,rgba(68,136,255,0),rgba(6,214,217,.12),rgba(124,58,237,0));
+  opacity:0;transition:opacity .35s;pointer-events:none;
+}
+.svc:hover::before{opacity:1}
+
+/* work card shimmer */
+.wkc{overflow:hidden;position:relative}
+.wkc::after{
+  content:'';position:absolute;top:0;left:-100%;
+  width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(68,136,255,.07),transparent);
+  pointer-events:none;transition:none;
+}
+.wkc:hover::after{
+  left:140%;transition:left .55s ease;
+}
+
+/* live card entrance flash */
+@keyframes cardFlash{
+  0%{border-color:rgba(6,214,217,.8);box-shadow:0 0 22px rgba(6,214,217,.3)}
+  100%{border-color:rgba(68,136,255,.22);box-shadow:none}
+}
+.card-loaded{animation:cardFlash .9s ease forwards}
+
+/* button magnetic wrap */
+.btn-p,.btn-o,.fsub{will-change:transform}
+
+/* metric pill pulse when value changes */
+@keyframes pillPulse{
+  0%,100%{border-color:var(--bdr)}
+  50%{border-color:var(--cyan);box-shadow:0 0 10px rgba(6,214,217,.25)}
+}
+.mpill.updated{animation:pillPulse .6s ease}
 </style>
 </head>
 <body>
+
+<!-- scroll progress -->
+<div id="scroll-prog"><div id="scroll-prog-bar"></div></div>
+<!-- cursor follower -->
+<div id="cfx"></div><div id="cfx2"></div>
 
 <canvas id="bgc"></canvas>
 <div class="scanlines"></div>
@@ -315,9 +407,9 @@ footer a:hover{color:var(--blue)}
     <div class="mpill"><span class="mk">BUILD/</span><span class="mv" style="color:var(--green)">STABLE</span></div>
   </div>
   <div class="stat-row">
-    <div class="sc glass rev"><div class="sn neon-b">12+</div><div class="sl">Años activos</div></div>
-    <div class="sc glass rev"><div class="sn neon-c">98%</div><div class="sl">Uptime SLA</div></div>
-    <div class="sc glass rev"><div class="sn neon-p">340+</div><div class="sl">Proyectos</div></div>
+    <div class="sc glass rev"><div class="sn neon-b" data-count="12" data-suffix="+">0+</div><div class="sl">Años activos</div></div>
+    <div class="sc glass rev"><div class="sn neon-c" data-count="98" data-suffix="%">0%</div><div class="sl">Uptime SLA</div></div>
+    <div class="sc glass rev"><div class="sn neon-p" data-count="340" data-suffix="+">0+</div><div class="sl">Proyectos</div></div>
     <div class="sc glass rev"><div class="sn" style="color:var(--green);text-shadow:0 0 18px rgba(52,211,153,.45)">ISO</div><div class="sl">Certificado</div></div>
   </div>
 </section>
@@ -986,14 +1078,29 @@ document.getElementById('bid').textContent = Math.random().toString(36).slice(2,
   });
 })();
 
-/* ─── GSAP REVEALS ─── */
+/* ─── GSAP REVEALS — enhanced ─── */
 gsap.utils.toArray('.rev').forEach(el=>{
-  gsap.from(el,{opacity:0,y:26,duration:.8,ease:'power2.out',
+  gsap.from(el,{opacity:0,y:26,duration:.85,ease:'power3.out',
     scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none none'}});
 });
-gsap.utils.toArray('.fu').forEach((el,i)=>{
-  gsap.from(el,{opacity:0,y:18,duration:.7,ease:'power2.out',delay:(i%4)*.07,
-    scrollTrigger:{trigger:el,start:'top 90%',toggleActions:'play none none none'}});
+
+/* stagger per grid container — tarjetas entran en cascada real */
+['.svc-grid','.live-grid','.wk-grid'].forEach(sel=>{
+  const grid = document.querySelector(sel);
+  if(!grid) return;
+  gsap.from(grid.children,{
+    opacity:0, y:24, scale:.97,
+    duration:.65, ease:'power2.out',
+    stagger:{amount:.45, from:'start'},
+    scrollTrigger:{trigger:grid, start:'top 85%', toggleActions:'play none none none'}
+  });
+});
+
+/* stat row — fade up cascada */
+gsap.from('.stat-row .sc',{
+  opacity:0, x:-18, duration:.6, ease:'power2.out',
+  stagger:.12,
+  scrollTrigger:{trigger:'.stat-row', start:'top 88%', toggleActions:'play none none none'}
 });
 
 /* ─── SIDEBAR ACTIVE ─── */
@@ -1047,6 +1154,188 @@ document.getElementById('cform').addEventListener('submit',function(e){
   ]);
   renderSystem();
   setInterval(renderSystem, 4000);
+})();
+
+/* ══════════════════════════════════════════
+   DAY 3 — GSAP ADVANCED MICRO-INTERACTIONS
+   ══════════════════════════════════════════ */
+
+/* ── 1. SCROLL PROGRESS BAR ── */
+window.addEventListener('scroll',()=>{
+  const pct = scrollY / (document.body.scrollHeight - innerHeight) * 100;
+  document.getElementById('scroll-prog-bar').style.width = Math.min(pct,100)+'%';
+},{passive:true});
+
+/* ── 2. CURSOR FOLLOWER ── */
+(function(){
+  const c1 = document.getElementById('cfx');
+  const c2 = document.getElementById('cfx2');
+  if(!c1||!c2) return;
+  let mx=innerWidth/2, my=innerHeight/2;
+  let cx=mx, cy=my;
+  document.addEventListener('mousemove',e=>{ mx=e.clientX; my=e.clientY; },{passive:true});
+  (function loop(){
+    requestAnimationFrame(loop);
+    cx += (mx-cx)*.14; cy += (my-cy)*.14;
+    c1.style.left=cx+'px'; c1.style.top=cy+'px';
+    c2.style.left=mx+'px'; c2.style.top=my+'px';
+  })();
+  /* expand cursor over interactive elements */
+  document.querySelectorAll('a,button,.svc,.wkc,.nb,.news-item').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      c1.style.width='38px'; c1.style.height='38px';
+      c1.style.borderColor='rgba(68,136,255,.9)';
+    });
+    el.addEventListener('mouseleave',()=>{
+      c1.style.width='22px'; c1.style.height='22px';
+      c1.style.borderColor='rgba(6,214,217,.7)';
+    });
+  });
+})();
+
+/* ── 3. COUNTER ROLL-UP ── */
+(function(){
+  const counters = document.querySelectorAll('.sn[data-count]');
+  counters.forEach(el=>{
+    const target = parseInt(el.dataset.count,10);
+    const suffix = el.dataset.suffix || '';
+    const obj = {val:0};
+    ScrollTrigger.create({
+      trigger: el,
+      start:'top 88%',
+      once:true,
+      onEnter:()=>{
+        el.classList.add('counting');
+        gsap.to(obj,{
+          val: target,
+          duration: target > 100 ? 1.8 : 1.2,
+          ease:'power2.out',
+          onUpdate(){
+            el.textContent = Math.round(obj.val) + suffix;
+          },
+          onComplete(){
+            el.classList.remove('counting');
+          }
+        });
+      }
+    });
+  });
+})();
+
+/* ── 4. SECTION SCAN SWEEP ── */
+(function(){
+  document.querySelectorAll('section[id]').forEach(sec=>{
+    const sweep = document.createElement('div');
+    sweep.className='scan-sweep';
+    sec.style.position='relative';
+    sec.appendChild(sweep);
+    ScrollTrigger.create({
+      trigger:sec, start:'top 75%', once:true,
+      onEnter:()=>{
+        gsap.fromTo(sweep,
+          {top:'0%', opacity:1},
+          {top:'100%', opacity:0, duration:.8, ease:'power1.inOut',
+           onComplete:()=>sweep.remove()}
+        );
+      }
+    });
+  });
+})();
+
+/* ── 5. MAGNETIC BUTTONS ── */
+(function(){
+  document.querySelectorAll('.btn-p,.btn-o,.fsub').forEach(btn=>{
+    btn.addEventListener('mousemove',e=>{
+      const r = btn.getBoundingClientRect();
+      const dx = (e.clientX - r.left - r.width/2)  * .18;
+      const dy = (e.clientY - r.top  - r.height/2) * .18;
+      gsap.to(btn,{x:dx, y:dy, duration:.25, ease:'power2.out'});
+    });
+    btn.addEventListener('mouseleave',()=>{
+      gsap.to(btn,{x:0, y:0, duration:.45, ease:'elastic.out(1,.5)'});
+    });
+  });
+})();
+
+/* ── 6. LIVE CARD FLASH ON DATA LOAD ── */
+(function(){
+  const orig_setBadge = setBadge;
+  window.cardFlash = function(cardId){
+    const card = document.getElementById(cardId);
+    if(!card) return;
+    card.classList.remove('card-loaded');
+    void card.offsetWidth; // reflow
+    card.classList.add('card-loaded');
+  };
+  /* observe badge changes to flash parent card */
+  const map = {
+    'rates-st':'card-rates','quote-st':'card-quote',
+    'news-st':'card-news','cal-st':'card-cal',
+    'av-st':'card-av','sys-st':'card-sys'
+  };
+  Object.entries(map).forEach(([badgeId, cardId])=>{
+    const badge = document.getElementById(badgeId);
+    if(!badge) return;
+    const mo = new MutationObserver(()=>window.cardFlash(cardId));
+    mo.observe(badge,{childList:true, characterData:true, subtree:true});
+  });
+})();
+
+/* ── 7. METRIC PILL PULSE on update ── */
+(function(){
+  const origRender = window.renderSystem;
+  // patch renderSystem to pulse pills after update
+  const pills = document.querySelectorAll('.mpill');
+  let firstRender = true;
+  const _origInterval = setInterval; // already scheduled, we hook manually
+  document.addEventListener('sys-updated',()=>{
+    if(firstRender){firstRender=false;return;}
+    pills.forEach((p,i)=>{
+      setTimeout(()=>{
+        p.classList.remove('updated');
+        void p.offsetWidth;
+        p.classList.add('updated');
+      }, i*80);
+    });
+  });
+  /* fire event after renderSystem calls */
+  const _orig = window.renderSystem;
+  if(_orig) window.renderSystem = function(){
+    _orig(); document.dispatchEvent(new Event('sys-updated'));
+  };
+})();
+
+/* ── 8. SERVICE CARD stagger border color ── */
+gsap.utils.toArray('.svc').forEach((card,i)=>{
+  card.addEventListener('mouseenter',()=>{
+    gsap.to(card,{borderColor:'rgba(68,136,255,.46)',duration:.22,ease:'power2.out'});
+  });
+  card.addEventListener('mouseleave',()=>{
+    gsap.to(card,{borderColor:'rgba(68,136,255,.18)',duration:.35,ease:'power2.out'});
+  });
+});
+
+/* ── 9. WORK CARD neon glow on hover ── */
+gsap.utils.toArray('.wkc').forEach(card=>{
+  card.addEventListener('mouseenter',()=>{
+    gsap.to(card,{boxShadow:'0 22px 52px rgba(6,214,217,.1)',duration:.28,ease:'power2.out'});
+  });
+  card.addEventListener('mouseleave',()=>{
+    gsap.to(card,{boxShadow:'none',duration:.4,ease:'power2.out'});
+  });
+});
+
+/* ── 10. HERO H1 word-by-word split reveal (lightweight) ── */
+(function(){
+  const h1 = document.querySelector('.hero-h1');
+  if(!h1) return;
+  // wrap each line's text nodes - just animate the whole h1 with clip
+  gsap.from(h1,{
+    clipPath:'inset(0 100% 0 0)',
+    duration:1.1, ease:'power3.inOut',
+    delay:.3,
+    scrollTrigger:{trigger:h1, start:'top 90%', toggleActions:'play none none none'}
+  });
 })();
 </script>
 </body>
